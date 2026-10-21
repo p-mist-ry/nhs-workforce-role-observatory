@@ -1,0 +1,7 @@
+# Rebuilt from data/observations on every run, so not stored in git.
+# (The daily workflow uploads them as a downloadable run artifact.)
+data/derived/normalized/
+data/derived/dedup/
+data/derived/classified/
+__pycache__/
+*.pyc

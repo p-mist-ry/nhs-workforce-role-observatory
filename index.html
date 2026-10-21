@@ -1,0 +1,85 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Workforce Role Change Observatory</title>
+  <meta name="description" content="Independent observatory of how NHS and NHS-funded roles are changing, from public job adverts across the four UK nations.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <header class="masthead">
+    <p class="org">Workforce Role Change Observatory</p>
+    <p class="independence">Independent research project. Not an official NHS or government statistic.</p>
+  </header>
+
+  <main id="main">
+    <section class="question" aria-labelledby="q">
+      <h1 id="q">How is AI changing roles and the kinds of work?</h1>
+      <p class="status" id="status">Loading the latest data…</p>
+      <p class="caveat" id="caveat"></p>
+    </section>
+
+    <section aria-labelledby="h-ai">
+      <h2 id="h-ai">AI in the role itself, by nation</h2>
+      <p class="lede">Share of deduplicated adverts whose own duties or requirements mention AI or automation. Mentions found only in employer boilerplate are excluded. Lines show 95% intervals; small groups are withheld.</p>
+      <div id="ai-intervals" class="figure"></div>
+    </section>
+
+    <section aria-labelledby="h-trend">
+      <h2 id="h-trend">Month by month</h2>
+      <p class="lede">The same measure over time. Shaded bands are 95% intervals.</p>
+      <div id="trend" class="small-multiples"></div>
+    </section>
+
+    <section aria-labelledby="h-change">
+      <h2 id="h-change">Where adverts for the same job changed</h2>
+      <p class="lede">Successive adverts from one employer with the same title, where AI content or task types were added or removed. These are leads for review, not findings.</p>
+      <div id="signals"></div>
+      <ol id="examples" class="examples"></ol>
+    </section>
+
+    <section aria-labelledby="h-terms">
+      <h2 id="h-terms">When terms first appeared</h2>
+      <p class="lede">First month each AI-related term appeared in role text, across all nations.</p>
+      <ol id="terms" class="terms"></ol>
+    </section>
+
+    <section aria-labelledby="h-demand">
+      <h2 id="h-demand">What was collected</h2>
+      <div class="two-col">
+        <div>
+          <h3>Advertised vacancies by nation</h3>
+          <table id="nations" class="data"></table>
+        </div>
+        <div>
+          <h3>Role families (from description evidence)</h3>
+          <table id="families" class="data"></table>
+        </div>
+      </div>
+    </section>
+
+    <section aria-labelledby="h-sources">
+      <h2 id="h-sources">Sources and their status</h2>
+      <div class="scroll"><table id="sources" class="data"></table></div>
+    </section>
+
+    <section aria-labelledby="h-quality">
+      <h2 id="h-quality">Data quality and versions</h2>
+      <div class="two-col">
+        <dl id="quality" class="facts"></dl>
+        <dl id="versions" class="facts"></dl>
+      </div>
+    </section>
+  </main>
+
+  <footer class="foot">
+    <p>Built from public recruitment information. Counts describe advertised demand, not people in post. Every classification links back to its source advert and evidence in the repository.</p>
+  </footer>
+  <script src="app.js"></script>
+</body>
+</html>

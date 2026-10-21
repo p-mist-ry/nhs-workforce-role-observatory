@@ -1,0 +1,1 @@
+run_id,started_at_utc,finished_at_utc,script,source_id,status,records_in,records_out,message,pipeline_version,git_sha,artefact_fingerprints

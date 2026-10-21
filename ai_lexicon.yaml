@@ -1,0 +1,147 @@
+# =====================================================================
+# AI lexicon - deterministic detection of AI/automation mentions.
+# Any edit MUST bump "version" and add a row to logs/change_log.csv
+# (artefact = ai_lexicon). validate.py enforces this.
+#
+# A match is only a CANDIDATE signal. It records where AI is mentioned,
+# not what the mention means. Meaning is assigned by GenAI with evidence.
+#
+# Fields per term
+#   id             unique id (never reuse a retired id)
+#   category       see categories below
+#   pattern        Python regular expression
+#   case_sensitive true = exact case (needed for short acronyms)
+#   exclude_if_sentence_matches   regex; if the sentence matches, drop the hit
+#   require_sentence_matches      regex; the sentence must ALSO match this
+# =====================================================================
+version: 0.1.0
+
+# Sentences that repeat across adverts for DIFFERENT roles are employer
+# boilerplate. (A sentence repeated across many adverts for the same role,
+# e.g. a standard job description, is role content, not boilerplate.)
+# Roles are told apart by normalised title - used here only to recognise
+# boilerplate, never to classify a role.
+# AI mentions inside boilerplate are counted as AI_ORGANISATIONAL_CONTEXT,
+# never as role content. Role-family and task rules also ignore boilerplate.
+boilerplate:
+  min_distinct_titles_same_employer: 3
+  min_distinct_titles_any_employer: 10
+  min_sentence_chars: 40
+
+categories:
+  generic_ai:          {headline: true,  relationship_candidates: []}
+  ml_development:      {headline: true,  relationship_candidates: [AI_BUILD]}
+  generative_ai:       {headline: true,  relationship_candidates: [AI_USE]}
+  ambient_documentation: {headline: true, relationship_candidates: [AI_SUPPORTED_TASK]}
+  decision_support:    {headline: true,  relationship_candidates: [AI_SUPPORTED_TASK]}
+  automation:          {headline: true,  relationship_candidates: [AI_BUILD]}
+  ai_governance:       {headline: true,  relationship_candidates: [AI_GOVERN]}
+  ai_adoption:         {headline: true,  relationship_candidates: [AI_ADOPTION_SUPPORT]}
+  # "Adjacent" categories are tracked for context and for the ten-year
+  # view (e.g. speech recognition pre-dates current AI) but are NOT
+  # counted in the headline AI indicator.
+  speech_recognition:  {headline: false, relationship_candidates: [AI_SUPPORTED_TASK]}
+  data_foundation:     {headline: false, relationship_candidates: [AI_DATA_FOUNDATION]}
+  digital_skills:      {headline: false, relationship_candidates: []}
+
+terms:
+  # ---- generic ----------------------------------------------------
+  - id: ai_phrase
+    category: generic_ai
+    pattern: 'artificial intelligence'
+    case_sensitive: false
+  - id: ai_acronym
+    category: generic_ai
+    pattern: '\bAI\b'
+    case_sensitive: true
+    # Clinical uses of "AI" that are not artificial intelligence
+    exclude_if_sentence_matches: '(?i)artificial insemination|aortic (insufficiency|incompetence)|adrenal insufficiency|amelogenesis imperfecta'
+
+  # ---- machine learning / model development ------------------------
+  - {id: machine_learning, category: ml_development, pattern: 'machine[- ]learning', case_sensitive: false}
+  - {id: deep_learning, category: ml_development, pattern: 'deep[- ]learning|neural networks?', case_sensitive: false}
+  - {id: nlp_phrase, category: ml_development, pattern: 'natural language processing', case_sensitive: false}
+  - {id: computer_vision, category: ml_development, pattern: 'computer vision', case_sensitive: false}
+  - {id: mlops, category: ml_development, pattern: '\bMLOps\b', case_sensitive: true}
+  - {id: model_training, category: ml_development, pattern: '(train|validat|deploy)(ing|e|ed)? (machine learning |predictive |AI )?models?', case_sensitive: false,
+     require_sentence_matches: '(?i)machine learning|\bAI\b|predictive|algorithm|data scien'}
+
+  # ---- generative AI ----------------------------------------------
+  - {id: generative_ai, category: generative_ai, pattern: 'generative (AI|artificial intelligence)|\bGen ?AI\b', case_sensitive: false}
+  - {id: llm_phrase, category: generative_ai, pattern: 'large language models?', case_sensitive: false}
+  - id: llm_acronym
+    category: generative_ai
+    pattern: '\bLLMs?\b'
+    case_sensitive: true
+    # LLM is also the Master of Laws degree
+    exclude_if_sentence_matches: '(?i)master of laws|\blaw\b|legal|solicitor|barrister'
+  - {id: chatgpt, category: generative_ai, pattern: 'ChatGPT', case_sensitive: false}
+  - id: copilot
+    category: generative_ai
+    pattern: '\bCopilot\b'
+    case_sensitive: false
+    require_sentence_matches: '(?i)microsoft|\bM365\b|office|\bAI\b|teams'
+  - {id: prompt_engineering, category: generative_ai, pattern: 'prompt (engineering|design)', case_sensitive: false}
+
+  # ---- ambient voice / documentation --------------------------------
+  - {id: ambient_voice, category: ambient_documentation, pattern: 'ambient (voice|scribe|listening|clinical documentation)', case_sensitive: false}
+  - {id: ai_scribe, category: ambient_documentation, pattern: '\bAI[- ]scribes?\b|digital scribes?', case_sensitive: false}
+  - id: avt_acronym
+    category: ambient_documentation
+    pattern: '\bAVT\b'
+    case_sensitive: true
+    require_sentence_matches: '(?i)ambient|voice|scribe|transcri'
+
+  # ---- decision support / imaging -----------------------------------
+  - {id: ai_assisted, category: decision_support, pattern: 'AI[- ](assisted|enabled|powered|driven|based|supported)', case_sensitive: false}
+  - {id: clinical_decision_support, category: decision_support, pattern: '(clinical )?decision support (tools?|systems?|software)', case_sensitive: false}
+  - id: computer_aided_detection
+    category: decision_support
+    pattern: 'computer[- ]aided (detection|diagnosis)'
+    case_sensitive: false
+  - {id: predictive_analytics, category: decision_support, pattern: 'predictive (analytics|models?|modelling|algorithms?)', case_sensitive: false}
+  - id: algorithm
+    category: decision_support
+    pattern: '\balgorithms?\b'
+    case_sensitive: false
+    require_sentence_matches: '(?i)\bAI\b|machine learning|predict|risk strat|automat'
+
+  # ---- automation ---------------------------------------------------
+  - {id: rpa, category: automation, pattern: 'robotic process automation|\bRPA\b', case_sensitive: false}
+  - {id: intelligent_automation, category: automation, pattern: 'intelligent automation|hyper-?automation', case_sensitive: false}
+  - id: automation_generic
+    category: automation
+    pattern: '\bautomat(e|es|ed|ing|ion)\b'
+    case_sensitive: false
+    # Automated external defibrillators and lab analysers are not role-changing automation
+    exclude_if_sentence_matches: '(?i)defibrillat|\bAED\b|analys(er|ers)|automated (cell|blood|haematology)'
+
+  # ---- governance ----------------------------------------------------
+  - {id: ai_governance, category: ai_governance, pattern: 'AI (governance|assurance|ethics|safety|regulation|risk)', case_sensitive: false}
+  - {id: algorithmic_transparency, category: ai_governance, pattern: 'algorithmic (transparency|impact|bias)', case_sensitive: false}
+  - {id: dtac, category: ai_governance, pattern: '\bDTAC\b|Digital Technology Assessment Criteria', case_sensitive: false}
+  - {id: samd, category: ai_governance, pattern: 'software as a medical device|\bSaMD\b|\bAIaMD\b|AI as a medical device', case_sensitive: false}
+  - {id: ai_act, category: ai_governance, pattern: '\bEU AI Act\b', case_sensitive: false}
+
+  # ---- adoption -------------------------------------------------------
+  - {id: ai_champion, category: ai_adoption, pattern: 'AI (champion|lead|adoption|literacy)', case_sensitive: false}
+
+  # ---- adjacent: speech recognition (ten-year baseline) -------------
+  - {id: speech_recognition, category: speech_recognition, pattern: '(speech|voice) recognition', case_sensitive: false}
+  - {id: digital_dictation, category: speech_recognition, pattern: 'digital dictation', case_sensitive: false}
+
+  # ---- adjacent: data foundations -----------------------------------
+  - {id: fdp, category: data_foundation, pattern: 'federated data platform', case_sensitive: false}
+  - {id: tre_sde, category: data_foundation, pattern: 'trusted research environment|secure data environment', case_sensitive: false}
+  - {id: data_platform, category: data_foundation, pattern: 'data (platform|lake|warehouse)', case_sensitive: false}
+
+  # ---- adjacent: digital skills ---------------------------------------
+  - {id: digital_literacy, category: digital_skills, pattern: 'digital (literacy|skills|champion|inclusion)', case_sensitive: false}
+
+# Terms deliberately NOT used, with reasons (keep for audit)
+deliberately_excluded:
+  - {text: 'ML', reason: 'Overwhelmingly means millilitre in NHS adverts'}
+  - {text: 'NLP', reason: 'Also neuro-linguistic programming'}
+  - {text: 'CAD', reason: 'Also computer-aided dispatch in ambulance services'}
+  - {text: 'bot', reason: 'Too many false positives (e.g. Botox, bottom, robot-assisted surgery)'}
+  - {text: 'robotic', reason: 'Robotic surgery is a clinical technology, track separately if needed'}

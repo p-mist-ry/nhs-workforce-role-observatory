@@ -1,0 +1,268 @@
+# =====================================================================
+# Observatory taxonomy
+# Any edit to this file MUST bump "version" and add a row to
+# logs/change_log.csv (artefact = taxonomy). validate.py enforces this.
+# =====================================================================
+version: 0.1.0
+
+nations: [England, Scotland, Wales, Northern Ireland]
+unknown_value: UNKNOWN
+
+# ---------------------------------------------------------------------
+# Rule settings
+#   Indicators are case-insensitive Python regular expressions.
+#   Only matches in the advert DESCRIPTION count towards a classification.
+#   Title matches are stored as "title_hints" and can never on their own
+#   produce a classification (core principle 1).
+# ---------------------------------------------------------------------
+rule_settings:
+  min_description_score: 2      # total indicator weight needed in description
+  min_margin_over_runner_up: 1  # otherwise the result is AMBIGUOUS
+  clinical_indicators:          # used to decide clinical status for "mixed" families
+    - 'patient caseload'
+    - 'clinical assessments?'
+    - 'direct patient care'
+    - 'hands-on (patient )?care'
+    - '\bprescrib'
+    - '\btriage\b'
+    - 'clinical (duties|practice|responsibilit)'
+
+# ---------------------------------------------------------------------
+# Role families (occupational groups). clinical: clinical | non_clinical | mixed
+# ---------------------------------------------------------------------
+role_families:
+  - id: medical_dental
+    label: Medical and dental
+    clinical: clinical
+    indicators:
+      - {pattern: '\bGMC\b|General Medical Council', weight: 3}
+      - {pattern: '\bGDC\b|General Dental Council', weight: 3}
+      - {pattern: 'licen[cs]e to practi[cs]e', weight: 1}
+      - {pattern: '\bCCT\b|Certificate of Completion of Training', weight: 2}
+      - {pattern: 'specialt(y|ist) (register|training)', weight: 1}
+
+  - id: medical_associate_professions
+    label: Medical associate professions (physician, anaesthesia and surgical associates/assistants)
+    clinical: clinical
+    indicators:
+      - {pattern: 'physician (associate|assistant)', weight: 2}
+      - {pattern: 'anaesthesia (associate|assistant)', weight: 2}
+      - {pattern: 'surgical care practitioner', weight: 2}
+      - {pattern: '\bPAMVR\b|Physician Associate Managed Voluntary Register', weight: 3}
+
+  - id: nursing_midwifery
+    label: Nursing and midwifery (registered)
+    clinical: clinical
+    indicators:
+      - {pattern: '\bNMC\b|Nursing and Midwifery Council', weight: 3}
+      - {pattern: 'registered (nurse|midwife|nursing associate)', weight: 2}
+      - {pattern: '\bRGN\b|\bRMN\b|\bRNLD\b|\bRSCN\b', weight: 2}
+      - {pattern: '\bmidwifery\b', weight: 1}
+      - {pattern: 'nursing care', weight: 1}
+
+  - id: allied_health
+    label: Allied health professions (including paramedics)
+    clinical: clinical
+    indicators:
+      - {pattern: '\bHCPC\b|Health and Care Professions Council', weight: 2}
+      - {pattern: 'physiotherap', weight: 2}
+      - {pattern: 'occupational therap', weight: 2}
+      - {pattern: 'radiograph', weight: 2}
+      - {pattern: 'speech and language therap', weight: 2}
+      - {pattern: 'dietit|dietic', weight: 2}
+      - {pattern: 'podiatr', weight: 2}
+      - {pattern: 'orthoptist', weight: 2}
+      - {pattern: 'operating department practi', weight: 2}
+      - {pattern: '\bparamedic', weight: 2}
+
+  - id: psychological_professions
+    label: Psychological professions
+    clinical: clinical
+    indicators:
+      - {pattern: '(clinical|counselling|forensic) psycholog', weight: 2}
+      - {pattern: 'psychological (therap|intervention)', weight: 2}
+      - {pattern: 'psychological wellbeing practitioner|\bPWP\b', weight: 2}
+      - {pattern: '\bBABCP\b', weight: 2}
+      - {pattern: '\bCBT\b|cognitive behavioural therapy', weight: 1}
+      - {pattern: 'British Psychological Society', weight: 1}
+
+  - id: pharmacy
+    label: Pharmacy
+    clinical: clinical
+    indicators:
+      - {pattern: '\bGPhC\b|General Pharmaceutical Council', weight: 3}
+      - {pattern: 'pharmacy technician', weight: 2}
+      - {pattern: '\bpharmacist', weight: 1}
+      - {pattern: 'medicines? (reconciliation|optimisation|management)', weight: 1}
+
+  - id: healthcare_science
+    label: Healthcare science
+    clinical: mixed
+    indicators:
+      - {pattern: 'healthcare scien', weight: 2}
+      - {pattern: 'biomedical scien', weight: 2}
+      - {pattern: '\bIBMS\b|Institute of Biomedical Science', weight: 2}
+      - {pattern: '\bRCCP\b|Registration Council for Clinical Physiologists', weight: 2}
+      - {pattern: '\bAHCS\b|Academy for Healthcare Science', weight: 2}
+      - {pattern: 'clinical (physiolog|engineer|scien)', weight: 1}
+
+  - id: clinical_support
+    label: Clinical support (healthcare support workers, assistants)
+    clinical: clinical
+    indicators:
+      - {pattern: 'health ?care support worker', weight: 2}
+      - {pattern: 'health ?care assistant|\bHCA\b', weight: 2}
+      - {pattern: 'nursing assistant', weight: 2}
+      - {pattern: 'maternity support worker', weight: 2}
+      - {pattern: 'care certificate', weight: 2}
+      - {pattern: 'personal care', weight: 1}
+      - {pattern: 'vital signs|clinical observations', weight: 1}
+
+  - id: social_work_social_care
+    label: Social work and social care
+    clinical: mixed
+    indicators:
+      - {pattern: 'Social Work England', weight: 3}
+      - {pattern: '\bSSSC\b|Scottish Social Services Council', weight: 3}
+      - {pattern: 'Social Care Wales', weight: 3}
+      - {pattern: '\bNISCC\b|Northern Ireland Social Care Council', weight: 3}
+      - {pattern: 'social worker', weight: 2}
+      - {pattern: 'care package', weight: 1}
+
+  - id: care_navigation_social_prescribing
+    label: Care navigation, social prescribing and health coaching
+    clinical: non_clinical
+    indicators:
+      - {pattern: 'social prescrib', weight: 2}
+      - {pattern: 'care co-?ordinator', weight: 2}
+      - {pattern: 'health and wellbeing coach', weight: 2}
+      - {pattern: 'care navigat', weight: 2}
+      - {pattern: '\bARRS\b|Additional Roles Reimbursement Scheme', weight: 1}
+
+  - id: digital_data_technology
+    label: Digital, data and technology
+    clinical: mixed
+    indicators:
+      - {pattern: 'software (develop|engineer)', weight: 2}
+      - {pattern: 'data (engineer|scien|warehouse|platform)', weight: 2}
+      - {pattern: 'cyber ?security', weight: 2}
+      - {pattern: '\bSQL\b|\bPython\b|Power BI', weight: 2}
+      - {pattern: 'clinical (systems|informatics|safety officer)', weight: 2}
+      - {pattern: 'electronic (patient|health) record|\bEPR\b|\bEHR\b', weight: 1}
+      - {pattern: 'infrastructure|service desk|network', weight: 1}
+
+  - id: administration_clerical
+    label: Administration and clerical
+    clinical: non_clinical
+    indicators:
+      - {pattern: 'medical secretar', weight: 2}
+      - {pattern: 'audio typ', weight: 2}
+      - {pattern: '\bclerical\b|receptionist|reception duties', weight: 2}
+      - {pattern: 'patient administration system|\bPAS\b', weight: 1}
+      - {pattern: 'minute[- ]taking|filing|photocopying', weight: 1}
+      - {pattern: 'booking appointments|appointment booking', weight: 1}
+
+  - id: estates_facilities
+    label: Estates, facilities and support services
+    clinical: non_clinical
+    indicators:
+      - {pattern: '\bdomestic (assistant|services)', weight: 2}
+      - {pattern: '\bporter|portering', weight: 2}
+      - {pattern: '\bcatering\b|\bkitchen\b', weight: 2}
+      - {pattern: '\bestates\b|building maintenance|\bfacilities\b', weight: 2}
+      - {pattern: 'cleaning schedules?|infection control cleaning', weight: 1}
+
+  - id: management_corporate
+    label: Management and corporate services
+    clinical: non_clinical
+    indicators:
+      - {pattern: '\bfinance|financial (management|accounting)|accountan', weight: 2}
+      - {pattern: 'human resources|\bHR\b|people (services|team)|workforce planning', weight: 2}
+      - {pattern: 'procurement|contract management', weight: 2}
+      - {pattern: 'project management|programme management|\bPRINCE2\b', weight: 2}
+      - {pattern: 'budget (holder|management)', weight: 1}
+      - {pattern: 'board (papers|reports)|corporate governance', weight: 1}
+
+  - id: research_education
+    label: Research and education
+    clinical: mixed
+    indicators:
+      - {pattern: 'clinical trials?', weight: 2}
+      - {pattern: '\bGCP\b|Good Clinical Practice', weight: 2}
+      - {pattern: 'research (nurse|practitioner|governance|delivery)', weight: 2}
+      - {pattern: '(practice|clinical) educator', weight: 2}
+
+  - id: ambulance_urgent_access
+    label: Ambulance control, 999 and 111 access
+    clinical: mixed
+    indicators:
+      - {pattern: 'emergency (medical )?dispatch|call handl', weight: 2}
+      - {pattern: '\b999\b|\b111\b', weight: 1}
+      - {pattern: 'control room|clinical hub', weight: 1}
+
+# ---------------------------------------------------------------------
+# Task categories (what the work involves). Multi-label.
+# ---------------------------------------------------------------------
+task_categories:
+  - {id: direct_patient_care, label: Direct patient care,
+     indicators: ['direct patient care', 'hands-on (patient )?care', 'personal care', 'patient caseload']}
+  - {id: clinical_assessment, label: Clinical assessment and decision-making,
+     indicators: ['clinical assessments?', 'assess(ing)? patients', '\bdiagnos', 'clinical decision', '\btriage\b']}
+  - {id: care_coordination, label: Care coordination and navigation,
+     indicators: ['care co-?ordinat', 'signpost', 'care navigat', 'referrals? to']}
+  - {id: clinical_documentation, label: Clinical documentation and record keeping,
+     indicators: ['clinical (records|documentation|notes|letters)', 'record[- ]keeping', 'discharge summar']}
+  - {id: administration_scheduling, label: Administration and scheduling,
+     indicators: ['appointments?', 'scheduling', 'diary management', 'audio typ', 'correspondence', 'minute[- ]taking']}
+  - {id: data_analysis_reporting, label: Data analysis and reporting,
+     indicators: ['data analy', 'analys(e|ing) data', 'dashboards?', '\bKPIs?\b', 'Power BI', 'statistical (analysis|methods)']}
+  - {id: digital_systems, label: Digital clinical and business systems,
+     indicators: ['electronic (patient|health) record', '\bEPR\b', '\bEHR\b', 'clinical systems?', 'system administrat']}
+  - {id: software_data_engineering, label: Software and data engineering,
+     indicators: ['software develop', 'data engineer', 'data pipelines?', '\bSQL\b', '\bPython\b', 'cloud (platform|services)']}
+  - {id: governance_safety, label: Governance, safety and assurance,
+     indicators: ['clinical governance', 'information governance', 'clinical safety', 'risk management', '\bDCB0129\b', '\bDCB0160\b', 'data protection impact assessment|\bDPIA\b']}
+  - {id: quality_improvement, label: Quality improvement and transformation,
+     indicators: ['quality improvement', 'service improvement', 'transformation', 'service redesign']}
+  - {id: education_supervision, label: Education, supervision and mentoring,
+     indicators: ['supervis(e|ion|ing)', '\bmentor', '\bteach', 'preceptor']}
+  - {id: research, label: Research and evaluation,
+     indicators: ['\bresearch\b', 'clinical trials?', '\bevaluation\b']}
+  - {id: management_leadership, label: Management and leadership,
+     indicators: ['line manag', 'budget', 'leadership', 'manag(e|ing) (a|the) team']}
+  - {id: patient_communication, label: Patient communication and education,
+     indicators: ['communicat(e|ion|ing) with patients', 'patient education', 'shared decision[- ]making']}
+  - {id: remote_virtual_care, label: Remote and virtual care,
+     indicators: ['virtual wards?', 'remote (patient )?monitoring', 'telehealth', 'video consultation', 'telephone consultation']}
+
+# ---------------------------------------------------------------------
+# Relationship between a role and AI (policy question 7)
+# Rules propose candidates; GenAI (with evidence spans) interprets.
+# ---------------------------------------------------------------------
+ai_relationships:
+  - {id: AI_BUILD, label: Builds, trains or implements AI or automation}
+  - {id: AI_DATA_FOUNDATION, label: Prepares data or infrastructure that AI depends on}
+  - {id: AI_GOVERN, label: Assures, governs or evaluates AI (safety, ethics, IG, procurement)}
+  - {id: AI_USE, label: Uses AI tools as part of the job}
+  - {id: AI_SUPPORTED_TASK, label: A named task is performed with AI support (e.g. ambient scribe, AI triage)}
+  - {id: AI_ADOPTION_SUPPORT, label: Trains, champions or supports others to adopt AI}
+  - {id: AI_ORGANISATIONAL_CONTEXT, label: AI mentioned only in employer boilerplate, not in this role's duties}
+  - {id: AI_NONE_OBSERVED, label: No AI content observed in the advert (absence in advert is not absence in the job)}
+  - {id: UNKNOWN, label: Cannot be determined from the evidence}
+
+# How work is changing - only assigned with evidence, never from title.
+work_change_mechanisms:
+  - {id: AUGMENTATION, label: AI or automation supports an existing task}
+  - {id: SUBSTITUTION, label: A task is described as automated or removed}
+  - {id: NEW_TASK, label: A new task appears (e.g. validating AI outputs)}
+  - {id: TASK_SHIFT, label: A task moves between roles or grades}
+  - {id: OVERSIGHT, label: Human oversight, checking or assurance of automated output}
+  - {id: SKILL_REQUIREMENT_CHANGE, label: New digital/AI skills or knowledge required}
+  - {id: NO_CHANGE_EVIDENCED, label: No change evidenced}
+  - {id: UNKNOWN, label: Cannot be determined}
+
+# Confidence scale shared by rules and GenAI
+confidence_scale:
+  high: "0.80-1.00: explicit statement in the advert"
+  medium: "0.50-0.79: strongly implied by several statements"
+  low: "0.00-0.49: weakly implied; treat as hypothesis only"

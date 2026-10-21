@@ -1,0 +1,30 @@
+# =====================================================================
+# Pipeline settings
+# =====================================================================
+version: 0.1.0
+
+dedup:
+  # Two adverts from different sources are the same vacancy only if their
+  # descriptions are this similar (Jaccard similarity of 5-word shingles).
+  min_text_similarity: 0.85
+  # Adverts of the same source and id seen on different days are the
+  # same vacancy. A re-advert after this gap is treated as a new vacancy.
+  readvert_gap_days: 45
+
+change_detection:
+  min_adverts_per_cell: 30       # suppress indicators for small cells
+  baseline_months: 6             # months pooled as the comparison baseline
+
+genai:
+  enabled: false                 # stays off until you deliberately switch it on
+  provider: anthropic
+  # Official Messages API endpoint, documented at docs.claude.com.
+  api_url: "https://api.anthropic.com/v1/messages"
+  anthropic_version_header: "2023-06-01"
+  # Copy an exact model id from the official models page before enabling.
+  model: null
+  max_items_per_run: 20          # hard cost cap per daily run
+  max_output_tokens: 2000
+  temperature: 0
+  stages: [extraction, classification, verification]
+  # The API key is read from the GitHub secret ANTHROPIC_API_KEY.

@@ -1,0 +1,122 @@
+/* Workforce Role Change Observatory
+   Palette: cool record-paper ground, ink-teal text, one ochre signal colour
+   reserved for AI content. Nation colours are used only in charts. */
+:root {
+  --paper: #f5f7f6;
+  --surface: #ffffff;
+  --ink: #17302c;
+  --ink-soft: #4a5d59;
+  --rule: #cfd8d5;
+  --signal: #a8660f;
+  --signal-wash: #f6ead6;
+  --england: #33608f;
+  --scotland: #23806f;
+  --wales: #a8452f;
+  --ni: #6d4f9a;
+  --unknown: #7d8783;
+  --focus: #a8660f;
+  --measure: 66ch;
+  color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --paper: #101a18;
+    --surface: #16231f;
+    --ink: #e4ece9;
+    --ink-soft: #a6b5b0;
+    --rule: #2c3b37;
+    --signal: #e3a54a;
+    --signal-wash: #33291a;
+    --england: #7fa8d6;
+    --scotland: #5cc0aa;
+    --wales: #e08870;
+    --ni: #b29be0;
+    --unknown: #9aa4a0;
+    color-scheme: dark;
+  }
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: "Atkinson Hyperlegible", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+  font-size: 1.0625rem;
+  line-height: 1.55;
+}
+a { color: inherit; text-decoration-color: var(--signal); text-underline-offset: 0.18em; }
+a:focus-visible, button:focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.skip { position: absolute; left: -999px; }
+.skip:focus { left: 1rem; top: 1rem; background: var(--surface); padding: 0.5rem 1rem; }
+
+.masthead, main, .foot { max-width: 72rem; margin: 0 auto; padding: 0 1.25rem; }
+.masthead { display: flex; flex-wrap: wrap; gap: 0.25rem 2rem; justify-content: space-between;
+  padding-top: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid var(--rule); }
+.org { margin: 0; font-weight: 700; }
+.independence { margin: 0; color: var(--ink-soft); font-size: 0.9375rem; }
+
+/* The question is the hero: large, set tight, left aligned */
+.question { padding: 3.5rem 0 2.5rem; border-bottom: 1px solid var(--rule); }
+.question h1 {
+  font-size: clamp(2.1rem, 5.2vw, 4rem);
+  line-height: 1.04;
+  letter-spacing: -0.02em;
+  margin: 0 0 1.5rem;
+  max-width: 18ch;
+}
+.status { font-size: 1.25rem; margin: 0 0 0.5rem; max-width: var(--measure); }
+.caveat { color: var(--ink-soft); margin: 0; max-width: var(--measure); }
+
+section { padding: 2.5rem 0; border-bottom: 1px solid var(--rule); }
+h2 { font-size: 1.5rem; line-height: 1.2; margin: 0 0 0.5rem; }
+h3 { font-size: 1.0625rem; margin: 0 0 0.75rem; }
+.lede { color: var(--ink-soft); margin: 0 0 1.5rem; max-width: var(--measure); }
+
+.figure svg, .small-multiples svg { display: block; width: 100%; height: auto; overflow: visible; }
+.figure text, .small-multiples text { fill: var(--ink); font-family: inherit; }
+.axis line, .axis path { stroke: var(--rule); }
+.axis text { fill: var(--ink-soft); font-size: 12px; }
+
+.small-multiples { display: grid; grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr)); gap: 1.5rem 2rem; }
+.small-multiples figure { margin: 0; }
+.small-multiples figcaption { font-weight: 700; margin-bottom: 0.25rem; }
+
+.empty { padding: 1.25rem 1.5rem; background: var(--surface); border-left: 4px solid var(--rule);
+  max-width: var(--measure); margin: 0; }
+
+.examples { list-style: none; padding: 0; margin: 0; display: grid; gap: 1.25rem; }
+.examples li { background: var(--surface); padding: 1rem 1.25rem; border-left: 4px solid var(--signal); }
+.examples .meta { color: var(--ink-soft); font-size: 0.9375rem; margin: 0 0 0.5rem; }
+.examples blockquote { margin: 0.5rem 0; padding: 0.25rem 0.75rem; background: var(--signal-wash); }
+.examples .removed { background: transparent; border-left: 2px solid var(--rule); text-decoration: line-through;
+  text-decoration-color: var(--ink-soft); }
+
+.terms { list-style: none; padding: 0; margin: 0; columns: 2 18rem; column-gap: 2rem; }
+.terms li { break-inside: avoid; padding: 0.35rem 0; border-bottom: 1px dotted var(--rule); }
+.terms .month { display: inline-block; min-width: 5.5rem; color: var(--ink-soft); font-variant-numeric: tabular-nums; }
+
+.two-col { display: grid; grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr)); gap: 2rem; }
+.scroll { overflow-x: auto; }
+table.data { border-collapse: collapse; width: 100%; font-size: 0.9375rem; }
+table.data th, table.data td { text-align: left; padding: 0.45rem 0.75rem 0.45rem 0; border-bottom: 1px solid var(--rule); vertical-align: top; }
+table.data th { font-weight: 700; }
+table.data td.num { text-align: right; font-variant-numeric: tabular-nums; }
+.bar { display: inline-block; height: 0.6rem; background: var(--ink-soft); vertical-align: middle; margin-left: 0.5rem; }
+
+.pill { display: inline-block; padding: 0 0.5rem; border-radius: 0.25rem; font-size: 0.875rem; border: 1px solid var(--rule); }
+.pill.ok { border-color: var(--scotland); }
+.pill.blocked { border-color: var(--signal); background: var(--signal-wash); }
+.pill.error { border-color: var(--wales); }
+
+dl.facts { display: grid; grid-template-columns: max-content 1fr; gap: 0.4rem 1.25rem; margin: 0; }
+dl.facts dt { color: var(--ink-soft); }
+dl.facts dd { margin: 0; font-variant-numeric: tabular-nums; overflow-wrap: anywhere; }
+
+.foot { padding-top: 2rem; padding-bottom: 3rem; color: var(--ink-soft); font-size: 0.9375rem; }
+.foot p { max-width: var(--measure); }
+
+@media (prefers-reduced-motion: no-preference) {
+  .interval { transition: opacity 200ms ease; }
+}

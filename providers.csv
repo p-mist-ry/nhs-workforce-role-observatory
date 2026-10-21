@@ -1,0 +1,42 @@
+provider_id,provider_name,aliases,nation,provider_type,ods_code,nhs_funded,verification_status,verified_source_url,verified_on,notes
+SCO-AA,NHS Ayrshire & Arran,NHS Ayrshire and Arran,Scotland,territorial_health_board,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+SCO-BOR,NHS Borders,,Scotland,territorial_health_board,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+SCO-DG,NHS Dumfries & Galloway,NHS Dumfries and Galloway,Scotland,territorial_health_board,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+SCO-FIF,NHS Fife,,Scotland,territorial_health_board,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+SCO-FV,NHS Forth Valley,,Scotland,territorial_health_board,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+SCO-GRA,NHS Grampian,,Scotland,territorial_health_board,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+SCO-GGC,NHS Greater Glasgow & Clyde,NHS Greater Glasgow and Clyde|NHSGGC,Scotland,territorial_health_board,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+SCO-HIG,NHS Highland,,Scotland,territorial_health_board,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+SCO-LAN,NHS Lanarkshire,,Scotland,territorial_health_board,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+SCO-LOT,NHS Lothian,,Scotland,territorial_health_board,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+SCO-ORK,NHS Orkney,,Scotland,territorial_health_board,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+SCO-SHE,NHS Shetland,,Scotland,territorial_health_board,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+SCO-TAY,NHS Tayside,,Scotland,territorial_health_board,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+SCO-WI,NHS Western Isles,NHS Eileanan Siar,Scotland,territorial_health_board,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+SCO-N24,NHS 24,,Scotland,special_health_board,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+SCO-NES,NHS Education for Scotland,,Scotland,special_health_board,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+SCO-NSS,NHS National Services Scotland,,Scotland,special_health_board,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+SCO-SAS,Scottish Ambulance Service,,Scotland,special_health_board,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+SCO-HIS,Healthcare Improvement Scotland,,Scotland,special_health_board,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+SCO-PHS,Public Health Scotland,,Scotland,special_health_board,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+SCO-TSH,The State Hospitals Board for Scotland,State Hospitals Board for Scotland,Scotland,special_health_board,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+SCO-GJ,NHS Golden Jubilee,National Waiting Times Centre,Scotland,special_health_board,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+WAL-AB,Aneurin Bevan University Health Board,,Wales,local_health_board,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+WAL-BC,Betsi Cadwaladr University Health Board,,Wales,local_health_board,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+WAL-CV,Cardiff and Vale University Health Board,,Wales,local_health_board,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+WAL-CTM,Cwm Taf Morgannwg University Health Board,,Wales,local_health_board,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+WAL-HD,Hywel Dda University Health Board,,Wales,local_health_board,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+WAL-PT,Powys Teaching Health Board,,Wales,local_health_board,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+WAL-SB,Swansea Bay University Health Board,,Wales,local_health_board,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+WAL-VEL,Velindre University NHS Trust,,Wales,nhs_trust,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+WAL-WAST,Welsh Ambulance Services NHS Trust,Welsh Ambulance Services University NHS Trust,Wales,nhs_trust,,TRUE,UNVERIFIED,,,Seed list - confirm current legal name
+WAL-PHW,Public Health Wales NHS Trust,Public Health Wales,Wales,nhs_trust,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+WAL-HEIW,Health Education and Improvement Wales,,Wales,special_health_authority,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+WAL-DHCW,Digital Health and Care Wales,,Wales,special_health_authority,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+NI-BHSCT,Belfast Health and Social Care Trust,Belfast HSCT|BHSCT|Belfast HSC Trust,Northern Ireland,hsc_trust,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+NI-NHSCT,Northern Health and Social Care Trust,Northern HSCT|NHSCT|Northern HSC Trust|Northern Health & Social Care Trust,Northern Ireland,hsc_trust,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+NI-SEHSCT,South Eastern Health and Social Care Trust,South Eastern HSCT|SEHSCT|South Eastern HSC Trust,Northern Ireland,hsc_trust,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+NI-SHSCT,Southern Health and Social Care Trust,Southern HSCT|SHSCT|Southern HSC Trust,Northern Ireland,hsc_trust,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+NI-WHSCT,Western Health and Social Care Trust,Western HSCT|WHSCT|Western HSC Trust,Northern Ireland,hsc_trust,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+NI-NIAS,Northern Ireland Ambulance Service Health and Social Care Trust,Northern Ireland Ambulance Service|NIAS,Northern Ireland,hsc_trust,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
+NI-BSO,Business Services Organisation,HSC Business Services Organisation,Northern Ireland,other_public_body,,TRUE,UNVERIFIED,,,Seed list - confirm name and ODS code
