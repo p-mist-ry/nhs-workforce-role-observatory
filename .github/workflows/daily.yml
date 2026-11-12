@@ -1,0 +1,132 @@
+# Daily collection, processing, validation and dashboard update.
+#
+# Runs:
+#   * every day at 05:17 UTC (schedule)
+#   * when you press "Run workflow" on the Actions tab (workflow_dispatch)
+#   * a lighter "check" job whenever you edit config, prompts, scripts or tests
+#
+# Before the first run, set: Settings > Actions > General >
+# Workflow permissions > "Read and write permissions" > Save.
+
+name: Daily observatory run
+
+on:
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch: {}
+  push:
+    branches: [main]
+    paths:
+      - "config/**"
+      - "prompts/**"
+      - "scripts/**"
+      - "tests/**"
+      - "logs/change_log.csv"
+      - ".github/workflows/**"
+
+permissions:
+  contents: write
+
+concurrency:
+  group: observatory
+  cancel-in-progress: false
+
+jobs:
+  # ------------------------------------------------------------------
+  # Runs after you edit files: tests + validation only, nothing collected.
+  # ------------------------------------------------------------------
+  check:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
+      - name: Validate (compare with previous commit)
+        run: python scripts/validate.py --git-base HEAD~1 --no-log
+
+  # ------------------------------------------------------------------
+  # The daily pipeline.
+  # ------------------------------------------------------------------
+  daily:
+    if: github.event_name != 'push'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install -r requirements.txt
+
+      - name: Unit tests
+        run: python -m unittest discover -s tests -v
+
+      # Collectors stop safely (and log why) until their source is configured.
+      - name: Collect NHS Jobs (England and Wales)
+        continue-on-error: true
+        run: python scripts/collect_nhsjobs.py
+      - name: Collect NHS Scotland
+        continue-on-error: true
+        run: python scripts/collect_scotland.py
+      - name: Collect HSC Northern Ireland
+        continue-on-error: true
+        run: python scripts/collect_hscni.py
+
+      - name: Normalise
+        run: python scripts/normalize.py
+      - name: Deduplicate
+        run: python scripts/deduplicate.py
+      - name: Rule-based classification
+        run: python scripts/classify_rules.py
+      - name: GenAI classification (skipped unless enabled)
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+        run: python scripts/classify_genai.py --mode classify
+      - name: Detect changes
+        run: python scripts/detect_changes.py
+
+      - name: Validate
+        id: validate
+        continue-on-error: true
+        run: python scripts/validate.py --git-base HEAD
+
+      - name: Build dashboard data
+        if: always()
+        run: python scripts/build_dashboard_data.py
+
+      - name: Keep intermediate files for 30 days (downloadable from this run)
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: derived-${{ github.run_id }}
+          path: data/derived
+          retention-days: 30
+          if-no-files-found: ignore
+
+      # Logs and raw observations are always saved, even if validation failed.
+      - name: Commit results
+        if: always()
+        run: |
+          git config user.name "observatory-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data logs docs/data
+          if git diff --cached --quiet; then
+            echo "Nothing new to commit."
+            exit 0
+          fi
+          git commit -m "Daily run ${{ github.run_id }}"
+          git pull --rebase origin main
+          git push
+
+      - name: Report validation failure
+        if: steps.validate.outcome == 'failure'
+        run: |
+          echo "Validation failed. Open logs/qa_log.csv and look at the newest FAIL rows."
+          exit 1
