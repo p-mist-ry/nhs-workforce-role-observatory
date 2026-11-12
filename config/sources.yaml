@@ -1,0 +1,212 @@
+# =====================================================================
+# NHS Workforce Role Change Observatory - source registry
+# =====================================================================
+# SAFETY RULES (enforced by scripts/collect_core.py):
+#   * A source is only contacted when ALL of these are filled in:
+#       enabled: true, endpoint, documentation_url, terms_url,
+#       terms_reviewed_on, format, and a field_map with at least
+#       title and url mapped.
+#   * Every endpoint below is deliberately null. Do NOT type a URL into
+#     "endpoint" until you have opened the official documentation and
+#     copied the exact address from it.
+#   * user_agent must contain a real contact e-mail address.
+#   * robots.txt is checked before every live collection.
+#
+# Field glossary
+#   role:  demand  = job adverts (vacancy demand)
+#          stock   = published workforce statistics (people in post)
+#          context = background evidence (archives, job profiles)
+#   nation_scope: nations the source can contain. A single value means
+#          every record is assumed to be from that nation (still logged
+#          as an inference, not an observed fact).
+# =====================================================================
+
+version: 0.1.0
+
+defaults:
+  # Replace with your own contact e-mail before enabling any source.
+  user_agent: "NHSWorkforceRoleChangeObservatory/0.1 (research; contact: CHANGE_ME@example.org)"
+  min_seconds_between_requests: 3
+  timeout_seconds: 30
+  max_response_bytes: 20000000
+  respect_robots_txt: true
+
+sources:
+
+  # ------------------------------------------------------------------
+  # DEMAND: job adverts
+  # ------------------------------------------------------------------
+  - source_id: nhsjobs
+    name: "NHS Jobs (England and Wales)"
+    role: demand
+    nation_scope: [England, Wales]
+    priority: 1                 # lower number wins when duplicates are merged
+    collector: scripts/collect_nhsjobs.py
+    enabled: false
+    homepage_url: "https://www.jobs.nhs.uk"
+    # NHSBSA publishes a "NHS Jobs Self-Serve Job Adverts API" document
+    # (Word file, several versions, e.g. V1.07). It describes an XML
+    # search endpoint and an RSS endpoint. Download the LATEST version
+    # from nhsbsa.nhs.uk, read it, then copy the exact endpoint and the
+    # exact XML element names into the fields below.
+    documentation_url: null
+    endpoint: null
+    format: null                # one of: xml, rss, atom, json
+    record_path: null           # xml: element path to each vacancy; json: dotted path to the list
+    params: {}                  # query parameters exactly as documented
+    pagination:
+      mode: none                # none | page_param
+      param: null
+      start: 1
+      max_pages: 1
+    field_map: {}               # canonical_field: source element/key (see README)
+    terms_url: null
+    terms_reviewed_on: null     # YYYY-MM-DD when you read the terms of use
+    notes: >
+      Covers England and most of Wales. Some Welsh and English employers
+      also advertise on their own sites or Trac; those are not covered.
+
+  - source_id: nhs_scotland
+    name: "NHS Scotland National Recruitment Portal"
+    role: demand
+    nation_scope: [Scotland]
+    priority: 1
+    collector: scripts/collect_scotland.py
+    enabled: false
+    homepage_url: "https://apply.jobs.scot.nhs.uk"
+    documentation_url: null     # No official feed documentation has been confirmed yet.
+    endpoint: null
+    format: null
+    record_path: null
+    params: {}
+    pagination: {mode: none, param: null, start: 1, max_pages: 1}
+    field_map: {}
+    terms_url: null
+    terms_reviewed_on: null
+    notes: >
+      The portal states that GP practice and other health-related jobs
+      are listed separately. Hours can be shown as "Various" - this must
+      be stored as null, never guessed.
+
+  - source_id: hscni
+    name: "HSC Recruit / jobs.hscni.net (Northern Ireland)"
+    role: demand
+    nation_scope: [Northern Ireland]
+    priority: 1
+    collector: scripts/collect_hscni.py
+    enabled: false
+    homepage_url: "https://jobs.hscni.net"
+    documentation_url: null     # No official feed documentation has been confirmed yet.
+    endpoint: null
+    format: null
+    record_path: null
+    params: {}
+    pagination: {mode: none, param: null, start: 1, max_pages: 1}
+    field_map: {}
+    terms_url: null
+    terms_reviewed_on: null
+    notes: >
+      Northern Ireland integrates health and social care (HSC), so social
+      care roles appear alongside health roles. Some adverts create
+      "waiting lists" rather than single posts - keep contract text verbatim.
+
+  # ------------------------------------------------------------------
+  # STOCK: published workforce statistics (never mixed with advert counts)
+  # Collected manually or by a future reviewed script.
+  # ------------------------------------------------------------------
+  - source_id: eng_workforce_stats
+    name: "NHS Workforce Statistics (England)"
+    role: stock
+    nation_scope: [England]
+    enabled: false
+    collector: null
+    homepage_url: "https://digital.nhs.uk/data-and-information/publications/statistical/nhs-workforce-statistics"
+    documentation_url: null
+    endpoint: null
+    notes: "Monthly staff in post. Verify the landing page before use."
+
+  - source_id: eng_gp_workforce
+    name: "General Practice Workforce (England)"
+    role: stock
+    nation_scope: [England]
+    enabled: false
+    collector: null
+    homepage_url: "https://digital.nhs.uk/data-and-information/publications/statistical/general-and-personal-medical-services"
+    documentation_url: null
+    endpoint: null
+    notes: "Includes primary care roles. Verify the landing page before use."
+
+  - source_id: scot_workforce_stats
+    name: "NHS Education for Scotland - Turas Data Intelligence workforce statistics"
+    role: stock
+    nation_scope: [Scotland]
+    enabled: false
+    collector: null
+    homepage_url: "https://turasdata.nes.nhs.scot"
+    documentation_url: null
+    endpoint: null
+    notes: "Official NHSScotland workforce and vacancy statistics."
+
+  - source_id: wales_workforce_stats
+    name: "StatsWales - NHS staff"
+    role: stock
+    nation_scope: [Wales]
+    enabled: false
+    collector: null
+    homepage_url: "https://statswales.gov.wales"
+    documentation_url: null
+    endpoint: null
+    notes: "Verify current location of NHS staff tables before use."
+
+  - source_id: ni_workforce_stats
+    name: "Department of Health NI - HSC staff numbers"
+    role: stock
+    nation_scope: [Northern Ireland]
+    enabled: false
+    collector: null
+    homepage_url: "https://www.health-ni.gov.uk/articles/staff-numbers"
+    documentation_url: null
+    endpoint: null
+    notes: "Quarterly HSC workforce statistics."
+
+  - source_id: ni_active_recruitment_stats
+    name: "Department of Health NI - HSC active recruitment statistics"
+    role: stock
+    nation_scope: [Northern Ireland]
+    enabled: false
+    collector: null
+    homepage_url: "https://www.health-ni.gov.uk/articles/staff-vacancies"
+    documentation_url: null
+    endpoint: null
+    notes: >
+      Official vacancy counts. These are an independent benchmark for our
+      advert counts; never add them together.
+
+  # ------------------------------------------------------------------
+  # CONTEXT: ten-year retrospective evidence
+  # ------------------------------------------------------------------
+  - source_id: nrs_web_archive
+    name: "National Records of Scotland web archive (historical portal snapshots)"
+    role: context
+    nation_scope: [Scotland]
+    enabled: false
+    collector: null
+    homepage_url: "https://nrs.preservation.mirrorweb.com"
+    documentation_url: null
+    endpoint: null
+    notes: >
+      Holds archived snapshots of the NHS Scotland recruitment portal.
+      Snapshot listings are partial samples, not complete vacancy counts.
+
+  - source_id: internet_archive
+    name: "Internet Archive Wayback Machine"
+    role: context
+    nation_scope: [England, Scotland, Wales, Northern Ireland]
+    enabled: false
+    collector: null
+    homepage_url: "https://web.archive.org"
+    documentation_url: null
+    endpoint: null
+    notes: >
+      Archived advert pages give patchy historical evidence. Treat as a
+      biased sample: popular pages are archived more often.

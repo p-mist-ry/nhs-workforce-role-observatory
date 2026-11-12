@@ -1,0 +1,10 @@
+change_id,date_utc,artefact,old_version,new_version,author,description,rationale
+CL-0001,2026-10-20,code,,0.1.0,initial-setup,Initial pipeline scripts,Repository creation
+CL-0002,2026-10-20,taxonomy,,0.1.0,initial-setup,Initial taxonomy of role families tasks AI relationships and change mechanisms,Repository creation
+CL-0003,2026-10-20,ai_lexicon,,0.1.0,initial-setup,Initial AI lexicon with false-positive guards,Repository creation
+CL-0004,2026-10-20,sources,,0.1.0,initial-setup,Initial source registry with all endpoints null,Repository creation
+CL-0005,2026-10-20,pipeline_config,,0.1.0,initial-setup,Initial pipeline settings with GenAI disabled,Repository creation
+CL-0006,2026-10-20,prompt_extraction,,0.1.0,initial-setup,Initial extraction prompt,Repository creation
+CL-0007,2026-10-20,prompt_classification,,0.1.0,initial-setup,Initial classification prompt,Repository creation
+CL-0008,2026-10-20,prompt_verification,,0.1.0,initial-setup,Initial verification prompt,Repository creation
+CL-0009,2026-10-20,prompt_change_detection,,0.1.0,initial-setup,Initial change detection prompt,Repository creation
