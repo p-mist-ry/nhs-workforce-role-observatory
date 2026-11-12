@@ -1,1 +1,12 @@
 qa_id,run_id,checked_at_utc,check_name,status,severity,file,details
+20261112T121611Z_43216321764_validate-001,20261112T121611Z_43216321764_validate,2026-11-12T12:16:11Z,config,PASS,info,,all config files parse; enabled sources documented
+20261112T121611Z_43216321764_validate-002,20261112T121611Z_43216321764_validate,2026-11-12T12:16:11Z,providers,PASS,info,,41 providers valid
+20261112T121611Z_43216321764_validate-003,20261112T121611Z_43216321764_validate,2026-11-12T12:16:11Z,log_headers,PASS,info,,log headers correct
+20261112T121611Z_43216321764_validate-004,20261112T121611Z_43216321764_validate,2026-11-12T12:16:11Z,change_log,PASS,info,,every current artefact version is logged
+20261112T121611Z_43216321764_validate-005,20261112T121611Z_43216321764_validate,2026-11-12T12:16:11Z,version_drift,PASS,info,,no unversioned changes detected
+20261112T121611Z_43216321764_validate-006,20261112T121611Z_43216321764_validate,2026-11-12T12:16:11Z,observations,PASS,info,,0 raw observations valid
+20261112T121611Z_43216321764_validate-007,20261112T121611Z_43216321764_validate,2026-11-12T12:16:11Z,storage,PASS,info,,observations use 0.0 MB
+20261112T121611Z_43216321764_validate-008,20261112T121611Z_43216321764_validate,2026-11-12T12:16:11Z,normalized,PASS,info,,0 normalised records valid
+20261112T121611Z_43216321764_validate-009,20261112T121611Z_43216321764_validate,2026-11-12T12:16:11Z,classifications,PASS,info,,0 rule classifications have valid evidence
+20261112T121611Z_43216321764_validate-010,20261112T121611Z_43216321764_validate,2026-11-12T12:16:11Z,genai,PASS,info,,0 GenAI records checked
+20261112T121611Z_43216321764_validate-011,20261112T121611Z_43216321764_validate,2026-11-12T12:16:11Z,append_only,PASS,info,,append-only areas unchanged since HEAD

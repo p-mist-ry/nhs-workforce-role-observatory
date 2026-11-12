@@ -1,0 +1,224 @@
+{
+  "ai": {
+    "by_nation_all_time": {
+      "England": {
+        "n": 0,
+        "n_ai": null,
+        "share": null,
+        "suppressed_small_n": true
+      },
+      "Northern Ireland": {
+        "n": 0,
+        "n_ai": null,
+        "share": null,
+        "suppressed_small_n": true
+      },
+      "Scotland": {
+        "n": 0,
+        "n_ai": null,
+        "share": null,
+        "suppressed_small_n": true
+      },
+      "UNKNOWN": {
+        "n": 0,
+        "n_ai": null,
+        "share": null,
+        "suppressed_small_n": true
+      },
+      "Wales": {
+        "n": 0,
+        "n_ai": null,
+        "share": null,
+        "suppressed_small_n": true
+      }
+    },
+    "change_signals": [],
+    "min_cell_size": 30,
+    "monthly_series": {},
+    "relationship_candidates_rules": {},
+    "role_change_examples": [],
+    "term_emergence": []
+  },
+  "caveat": "Counts are deduplicated job adverts (advertised demand). They are not workforce numbers, not posts filled, and not vacancy rates.",
+  "genai": {
+    "by_status": {},
+    "records": 0
+  },
+  "generated_at_utc": "2026-11-12T12:16:11Z",
+  "quality": {
+    "last_qa_checks": 11,
+    "last_qa_failures": [],
+    "last_qa_run_id": "20261112T121611Z_43216321764_validate",
+    "share_nation_unknown": 0.0,
+    "share_role_family_unknown_or_ambiguous": 0.0,
+    "title_only_refusals": 0
+  },
+  "role_families": {},
+  "sources": [
+    {
+      "enabled": false,
+      "endpoint_configured": false,
+      "last_message": "NOT COLLECTED (safe stop): enabled is not true; endpoint is not filled in; documentation_url is not filled in; terms_url is not filled in; terms_reviewed_on is not filled in; format is not filled in; field_map.title is not mapped; field_map.url is not mapped; defaults.user_agent still contains CHANGE_ME - add a contact e-mail",
+      "last_run_utc": "2026-11-12T12:16:09Z",
+      "last_status": "BLOCKED_NOT_CONFIGURED",
+      "name": "NHS Jobs (England and Wales)",
+      "nation_scope": [
+        "England",
+        "Wales"
+      ],
+      "role": "demand",
+      "source_id": "nhsjobs"
+    },
+    {
+      "enabled": false,
+      "endpoint_configured": false,
+      "last_message": "NOT COLLECTED (safe stop): enabled is not true; endpoint is not filled in; documentation_url is not filled in; terms_url is not filled in; terms_reviewed_on is not filled in; format is not filled in; field_map.title is not mapped; field_map.url is not mapped; defaults.user_agent still contains CHANGE_ME - add a contact e-mail",
+      "last_run_utc": "2026-11-12T12:16:09Z",
+      "last_status": "BLOCKED_NOT_CONFIGURED",
+      "name": "NHS Scotland National Recruitment Portal",
+      "nation_scope": [
+        "Scotland"
+      ],
+      "role": "demand",
+      "source_id": "nhs_scotland"
+    },
+    {
+      "enabled": false,
+      "endpoint_configured": false,
+      "last_message": "NOT COLLECTED (safe stop): enabled is not true; endpoint is not filled in; documentation_url is not filled in; terms_url is not filled in; terms_reviewed_on is not filled in; format is not filled in; field_map.title is not mapped; field_map.url is not mapped; defaults.user_agent still contains CHANGE_ME - add a contact e-mail",
+      "last_run_utc": "2026-11-12T12:16:10Z",
+      "last_status": "BLOCKED_NOT_CONFIGURED",
+      "name": "HSC Recruit / jobs.hscni.net (Northern Ireland)",
+      "nation_scope": [
+        "Northern Ireland"
+      ],
+      "role": "demand",
+      "source_id": "hscni"
+    },
+    {
+      "enabled": false,
+      "endpoint_configured": false,
+      "last_message": null,
+      "last_run_utc": null,
+      "last_status": null,
+      "name": "NHS Workforce Statistics (England)",
+      "nation_scope": [
+        "England"
+      ],
+      "role": "stock",
+      "source_id": "eng_workforce_stats"
+    },
+    {
+      "enabled": false,
+      "endpoint_configured": false,
+      "last_message": null,
+      "last_run_utc": null,
+      "last_status": null,
+      "name": "General Practice Workforce (England)",
+      "nation_scope": [
+        "England"
+      ],
+      "role": "stock",
+      "source_id": "eng_gp_workforce"
+    },
+    {
+      "enabled": false,
+      "endpoint_configured": false,
+      "last_message": null,
+      "last_run_utc": null,
+      "last_status": null,
+      "name": "NHS Education for Scotland - Turas Data Intelligence workforce statistics",
+      "nation_scope": [
+        "Scotland"
+      ],
+      "role": "stock",
+      "source_id": "scot_workforce_stats"
+    },
+    {
+      "enabled": false,
+      "endpoint_configured": false,
+      "last_message": null,
+      "last_run_utc": null,
+      "last_status": null,
+      "name": "StatsWales - NHS staff",
+      "nation_scope": [
+        "Wales"
+      ],
+      "role": "stock",
+      "source_id": "wales_workforce_stats"
+    },
+    {
+      "enabled": false,
+      "endpoint_configured": false,
+      "last_message": null,
+      "last_run_utc": null,
+      "last_status": null,
+      "name": "Department of Health NI - HSC staff numbers",
+      "nation_scope": [
+        "Northern Ireland"
+      ],
+      "role": "stock",
+      "source_id": "ni_workforce_stats"
+    },
+    {
+      "enabled": false,
+      "endpoint_configured": false,
+      "last_message": null,
+      "last_run_utc": null,
+      "last_status": null,
+      "name": "Department of Health NI - HSC active recruitment statistics",
+      "nation_scope": [
+        "Northern Ireland"
+      ],
+      "role": "stock",
+      "source_id": "ni_active_recruitment_stats"
+    },
+    {
+      "enabled": false,
+      "endpoint_configured": false,
+      "last_message": null,
+      "last_run_utc": null,
+      "last_status": null,
+      "name": "National Records of Scotland web archive (historical portal snapshots)",
+      "nation_scope": [
+        "Scotland"
+      ],
+      "role": "context",
+      "source_id": "nrs_web_archive"
+    },
+    {
+      "enabled": false,
+      "endpoint_configured": false,
+      "last_message": null,
+      "last_run_utc": null,
+      "last_status": null,
+      "name": "Internet Archive Wayback Machine",
+      "nation_scope": [
+        "England",
+        "Scotland",
+        "Wales",
+        "Northern Ireland"
+      ],
+      "role": "context",
+      "source_id": "internet_archive"
+    }
+  ],
+  "totals": {
+    "clusters_by_nation": {},
+    "cross_posted_clusters": 0,
+    "observations": 0,
+    "vacancy_clusters": 0
+  },
+  "versions": {
+    "ai_lexicon": "0.1.0",
+    "code": "0.1.0",
+    "git_sha": "59ac99b09cc725951fa7216e024e0f5e59894cfe",
+    "pipeline_config": "0.1.0",
+    "prompt_change_detection": "0.1.0",
+    "prompt_classification": "0.1.0",
+    "prompt_extraction": "0.1.0",
+    "prompt_verification": "0.1.0",
+    "sources": "0.1.0",
+    "taxonomy": "0.1.0"
+  }
+}
