@@ -10,3 +10,14 @@ qa_id,run_id,checked_at_utc,check_name,status,severity,file,details
 20261112T121611Z_43216321764_validate-009,20261112T121611Z_43216321764_validate,2026-11-12T12:16:11Z,classifications,PASS,info,,0 rule classifications have valid evidence
 20261112T121611Z_43216321764_validate-010,20261112T121611Z_43216321764_validate,2026-11-12T12:16:11Z,genai,PASS,info,,0 GenAI records checked
 20261112T121611Z_43216321764_validate-011,20261112T121611Z_43216321764_validate,2026-11-12T12:16:11Z,append_only,PASS,info,,append-only areas unchanged since HEAD
+20261113T061645Z_43377566630_validate-001,20261113T061645Z_43377566630_validate,2026-11-13T06:16:45Z,config,PASS,info,,all config files parse; enabled sources documented
+20261113T061645Z_43377566630_validate-002,20261113T061645Z_43377566630_validate,2026-11-13T06:16:45Z,providers,PASS,info,,41 providers valid
+20261113T061645Z_43377566630_validate-003,20261113T061645Z_43377566630_validate,2026-11-13T06:16:45Z,log_headers,PASS,info,,log headers correct
+20261113T061645Z_43377566630_validate-004,20261113T061645Z_43377566630_validate,2026-11-13T06:16:45Z,change_log,PASS,info,,every current artefact version is logged
+20261113T061645Z_43377566630_validate-005,20261113T061645Z_43377566630_validate,2026-11-13T06:16:45Z,version_drift,PASS,info,,no unversioned changes detected
+20261113T061645Z_43377566630_validate-006,20261113T061645Z_43377566630_validate,2026-11-13T06:16:45Z,observations,PASS,info,,0 raw observations valid
+20261113T061645Z_43377566630_validate-007,20261113T061645Z_43377566630_validate,2026-11-13T06:16:45Z,storage,PASS,info,,observations use 0.0 MB
+20261113T061645Z_43377566630_validate-008,20261113T061645Z_43377566630_validate,2026-11-13T06:16:45Z,normalized,PASS,info,,0 normalised records valid
+20261113T061645Z_43377566630_validate-009,20261113T061645Z_43377566630_validate,2026-11-13T06:16:45Z,classifications,PASS,info,,0 rule classifications have valid evidence
+20261113T061645Z_43377566630_validate-010,20261113T061645Z_43377566630_validate,2026-11-13T06:16:45Z,genai,PASS,info,,0 GenAI records checked
+20261113T061645Z_43377566630_validate-011,20261113T061645Z_43377566630_validate,2026-11-13T06:16:45Z,append_only,PASS,info,,append-only areas unchanged since HEAD
