@@ -18,6 +18,7 @@ record's integrity can still be demonstrated.
 from __future__ import annotations
 
 import argparse
+import functools
 import json
 import time
 import urllib.error
@@ -78,16 +79,21 @@ def preflight(src: dict, defaults: dict) -> list[str]:
 
 
 # ------------------------------------------------------------ fetching
-def robots_allows(url: str, user_agent: str) -> bool:
-    parts = urllib.parse.urlsplit(url)
-    robots_url = f"{parts.scheme}://{parts.netloc}/robots.txt"
+@functools.lru_cache(maxsize=None)
+def _robots_for(robots_url: str) -> urllib.robotparser.RobotFileParser:
+    """Read each site's robots.txt once per run, however many pages are fetched."""
     rp = urllib.robotparser.RobotFileParser()
     rp.set_url(robots_url)
     try:
         rp.read()
     except Exception as exc:  # network failure: be conservative
         raise Blocked(f"could not read {robots_url}: {exc}") from exc
-    return rp.can_fetch(user_agent, url)
+    return rp
+
+
+def robots_allows(url: str, user_agent: str) -> bool:
+    parts = urllib.parse.urlsplit(url)
+    return _robots_for(f"{parts.scheme}://{parts.netloc}/robots.txt").can_fetch(user_agent, url)
 
 
 def fetch(url: str, defaults: dict) -> tuple[int, bytes]:
@@ -213,7 +219,8 @@ def collect(source_id: str, dry_run: bool = False, strict: bool = False) -> int:
             pages = list(range(start, start + int(pag.get("max_pages", 1))))
 
         delay = float(defaults.get("min_seconds_between_requests", 3))
-        retrieved = []
+        retrieved, seen_keys = [], set()
+        fmap = src.get("field_map") or {}
         for i, page in enumerate(pages):
             params = dict(src.get("params") or {})
             if page is not None:
@@ -225,11 +232,18 @@ def collect(source_id: str, dry_run: bool = False, strict: bool = False) -> int:
                 time.sleep(delay)
             status, body = fetch(url, defaults)
             records = parse_records(body, src)
-            print(f"page {page}: HTTP {status}, {len(records)} records")
+            new = 0
             for rec in records:
+                m = map_record(rec, fmap)
+                key = m.get("source_record_id") or m.get("url") or common.sha256_json(rec)
+                if key in seen_keys:
+                    continue  # same advert on two pages: keep the first copy only
+                seen_keys.add(key)
                 retrieved.append((url, status, rec))
-            if not records:
-                break
+                new += 1
+            print(f"page {page}: HTTP {status}, {len(records)} records, {new} new")
+            if not records or new == 0:
+                break  # end of results, or the page parameter is being ignored
 
         day = common.today_utc()
         known = content_index(source_id)
