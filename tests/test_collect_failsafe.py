@@ -14,17 +14,43 @@ GOOD = {
 DEFAULTS = {"user_agent": "Observatory (contact: someone@example.org)"}
 
 
+# A source exactly as shipped before configuration: every key field empty.
+# Tests use this made-up source, never the live config/sources.yaml, so they
+# keep passing whichever real sources you switch on.
+UNCONFIGURED = {
+    "source_id": "synthetic_unconfigured", "enabled": False, "endpoint": None,
+    "documentation_url": None, "terms_url": None, "terms_reviewed_on": None,
+    "format": None, "record_path": None, "field_map": {},
+}
+
+
 class TestFailSafe(unittest.TestCase):
-    def test_shipped_sources_are_blocked(self):
-        for sid in ["nhsjobs", "nhs_scotland", "hscni"]:
-            src, defaults = cc.load_source(sid)
-            self.assertTrue(cc.preflight(src, defaults), sid)
+    def test_unconfigured_source_is_blocked(self):
+        problems = cc.preflight(UNCONFIGURED, DEFAULTS)
+        for expected in ["enabled is not true", "endpoint is not filled in",
+                         "terms_url is not filled in", "field_map.title is not mapped"]:
+            self.assertIn(expected, problems)
+
+    def test_each_missing_field_blocks(self):
+        for key in ["endpoint", "documentation_url", "terms_url", "terms_reviewed_on", "format"]:
+            src = copy.deepcopy(GOOD)
+            src[key] = None
+            self.assertTrue(cc.preflight(src, DEFAULTS), key)
 
     def test_no_network_when_blocked(self):
-        with mock.patch.object(cc, "fetch", side_effect=AssertionError("network used")), \
+        with mock.patch.object(cc, "load_source", return_value=(UNCONFIGURED, DEFAULTS)), \
+             mock.patch.object(cc, "robots_allows", side_effect=AssertionError("network used")), \
+             mock.patch.object(cc, "fetch", side_effect=AssertionError("network used")), \
              mock.patch.object(cc.common, "log_run") as log:
-            self.assertEqual(cc.collect("nhsjobs"), 0)
+            self.assertEqual(cc.collect("synthetic_unconfigured"), 0)
             self.assertEqual(log.call_args[0][3], "BLOCKED_NOT_CONFIGURED")
+
+    def test_live_config_parses(self):
+        """Every source in config/sources.yaml can be loaded (whether on or off)."""
+        for sid in ["nhsjobs", "nhs_scotland", "hscni"]:
+            src, defaults = cc.load_source(sid)
+            self.assertEqual(src["source_id"], sid)
+            self.assertIsInstance(cc.preflight(src, defaults), list)
 
     def test_placeholder_user_agent_blocks(self):
         problems = cc.preflight(GOOD, {"user_agent": "x CHANGE_ME"})
