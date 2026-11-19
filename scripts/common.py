@@ -22,7 +22,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-PIPELINE_VERSION = "0.1.0"
+PIPELINE_VERSION = "0.1.1"
 
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG = ROOT / "config"
