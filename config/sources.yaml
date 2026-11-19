@@ -21,7 +21,7 @@
 #          as an inference, not an observed fact).
 # =====================================================================
 
-version: 0.1.0
+version: 0.2.0
 
 defaults:
   # Replace with your own contact e-mail before enabling any source.
@@ -42,29 +42,40 @@ sources:
     nation_scope: [England, Wales]
     priority: 1                 # lower number wins when duplicates are merged
     collector: scripts/collect_nhsjobs.py
-    enabled: false
+    enabled: true              # FILL IN: change to true in the same edit as the terms fields
     homepage_url: "https://www.jobs.nhs.uk"
-    # NHSBSA publishes a "NHS Jobs Self-Serve Job Adverts API" document
-    # (Word file, several versions, e.g. V1.07). It describes an XML
-    # search endpoint and an RSS endpoint. Download the LATEST version
-    # from nhsbsa.nhs.uk, read it, then copy the exact endpoint and the
-    # exact XML element names into the fields below.
-    documentation_url: null
-    endpoint: null
-    format: null                # one of: xml, rss, atom, json
-    record_path: null           # xml: element path to each vacancy; json: dotted path to the list
-    params: {}                  # query parameters exactly as documented
+    # Source: NHSBSA "NHS Jobs Self-Serve Job Adverts API" V1.07, linked from
+    # the NHSBSA page "NHS Jobs integration and benefits". The search_xml
+    # endpoint returns all UK vacancies when no employer code is given.
+    documentation_url: "https://www.nhsbsa.nhs.uk/sites/default/files/2026-05/NHS%20Jobs%20Self-Serve%20Job%20Adverts%20API%20V1.07_0.docx"
+    endpoint: "https://www.jobs.nhs.uk/api/v1/search_xml"
+    format: xml
+    record_path: vacancyDetails  # each vacancy is one <vacancyDetails> element
+    params:
+      limit: 20                 # value used in the document's own example
     pagination:
-      mode: none                # none | page_param
+      mode: none                # PILOT: first page only. See README Part 2 to enable paging.
       param: null
       start: 1
       max_pages: 1
-    field_map: {}               # canonical_field: source element/key (see README)
-    terms_url: null
-    terms_reviewed_on: null     # YYYY-MM-DD when you read the terms of use
+    field_map:                  # element names checked against the live feed on 2026-11-19
+      source_record_id: id
+      url: url
+      title: title
+      employer: employer
+      description: description  # NOTE: the feed gives only a short extract of the job overview
+      location: locations.location
+      pay_text: salary
+      contract_text: type
+      closing_date_text: closeDate
+      posted_date_text: postDate
+    terms_url: "https://www.jobs.nhs.uk/candidate/acceptable-use"    # FILL IN: address of the NHS Jobs terms and conditions page
+    terms_reviewed_on: 2026-11-19     # FILL IN: date you read them, as YYYY-MM-DD
     notes: >
       Covers England and most of Wales. Some Welsh and English employers
       also advertise on their own sites or Trac; those are not covered.
+      The description field is a truncated job overview, not the full
+      advert, so role classification evidence is limited for this source.
 
   - source_id: nhs_scotland
     name: "NHS Scotland National Recruitment Portal"
