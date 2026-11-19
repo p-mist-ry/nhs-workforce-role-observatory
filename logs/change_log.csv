@@ -8,3 +8,5 @@ CL-0006,2026-10-20,prompt_extraction,,0.1.0,initial-setup,Initial extraction pro
 CL-0007,2026-10-20,prompt_classification,,0.1.0,initial-setup,Initial classification prompt,Repository creation
 CL-0008,2026-10-20,prompt_verification,,0.1.0,initial-setup,Initial verification prompt,Repository creation
 CL-0009,2026-10-20,prompt_change_detection,,0.1.0,initial-setup,Initial change detection prompt,Repository creation
+CL-0010,2026-11-19,code,0.1.0,0.1.1,p-mist-ry,Collector reads robots.txt once per run and stops paging when a page returns no new adverts,Prepare for multi-page collection from NHS Jobs without duplicates
+CL-0011,2026-11-19,sources,0.1.0,0.2.0,p-mist-ry,Configured NHS Jobs search_xml endpoint and field map (pilot: first page only),Endpoint and element names taken from NHSBSA Self-Serve Job Adverts API V1.07
