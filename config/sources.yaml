@@ -21,11 +21,11 @@
 #          as an inference, not an observed fact).
 # =====================================================================
 
-version: 0.2.0
+version: 0.2.1
 
 defaults:
   # Replace with your own contact e-mail before enabling any source.
-  user_agent: "NHSWorkforceRoleChangeObservatory/0.1 (research; contact: CHANGE_ME@example.org)"
+  user_agent: "NHSWorkforceRoleChangeObservatory/0.1 (research; +https://github.com/p-mist-ry/nhs-workforce-role-observatory)"
   min_seconds_between_requests: 3
   timeout_seconds: 30
   max_response_bytes: 20000000
