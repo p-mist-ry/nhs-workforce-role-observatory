@@ -87,3 +87,27 @@ class TestSightings(unittest.TestCase):
                 self.assertEqual(len(out), 2)
                 self.assertEqual(out[1]["content_from_observation_id"], recs[0]["observation_id"])
                 self.assertEqual(out[1]["observed"]["title"]["value"], "Porter")
+
+
+class TestPaging(unittest.TestCase):
+    def test_ignored_page_parameter_stops_without_duplicates(self):
+        """If the site ignores the page parameter, page 2 repeats page 1: stop, no duplicates."""
+        import tempfile
+        from pathlib import Path
+        body = (b"<nhsSearch><vacancyDetails><id>1</id><title>Porter</title>"
+                b"<url>https://example.org/1</url></vacancyDetails></nhsSearch>")
+        src = copy.deepcopy(GOOD)
+        src.update({"format": "xml", "record_path": "vacancyDetails",
+                    "field_map": {"source_record_id": "id", "title": "title", "url": "url"},
+                    "pagination": {"mode": "page_param", "param": "page", "start": 1, "max_pages": 5}})
+        with tempfile.TemporaryDirectory() as tmp:
+            with mock.patch.object(cc.common, "OBSERVATIONS", Path(tmp)), \
+                 mock.patch.object(cc.common, "log_run"), \
+                 mock.patch.object(cc, "load_source", return_value=(src, DEFAULTS)), \
+                 mock.patch.object(cc, "robots_allows", return_value=True), \
+                 mock.patch.object(cc.time, "sleep"), \
+                 mock.patch.object(cc, "fetch", return_value=(200, body)) as f:
+                self.assertEqual(cc.collect("synthetic"), 0)
+                self.assertEqual(f.call_count, 2)      # page 1, then page 2 found nothing new
+                recs = [r for p in Path(tmp).rglob("*.jsonl") for r in cc.common.read_jsonl(p)]
+                self.assertEqual(len(recs), 1)
