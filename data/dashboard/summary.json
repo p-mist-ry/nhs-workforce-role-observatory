@@ -2,7 +2,7 @@
   "ai": {
     "by_nation_all_time": {
       "England": {
-        "n": 36,
+        "n": 53,
         "n_ai": 0,
         "share": 0.0,
         "suppressed_small_n": false
@@ -20,13 +20,13 @@
         "suppressed_small_n": true
       },
       "UNKNOWN": {
-        "n": 2,
+        "n": 4,
         "n_ai": null,
         "share": null,
         "suppressed_small_n": true
       },
       "Wales": {
-        "n": 2,
+        "n": 3,
         "n_ai": null,
         "share": null,
         "suppressed_small_n": true
@@ -37,20 +37,20 @@
     "monthly_series": {
       "ALL": [
         {
-          "ci95_high": 0.0876,
+          "ci95_high": 0.0602,
           "ci95_low": 0.0,
           "month": "2026-11",
-          "n_vacancy_clusters": 40,
+          "n_vacancy_clusters": 60,
           "share_ai_role_content": 0.0,
           "suppressed_small_n": false
         }
       ],
       "England": [
         {
-          "ci95_high": 0.0964,
+          "ci95_high": 0.0676,
           "ci95_low": 0.0,
           "month": "2026-11",
-          "n_vacancy_clusters": 36,
+          "n_vacancy_clusters": 53,
           "share_ai_role_content": 0.0,
           "suppressed_small_n": false
         }
@@ -60,7 +60,7 @@
           "ci95_high": null,
           "ci95_low": null,
           "month": "2026-11",
-          "n_vacancy_clusters": 2,
+          "n_vacancy_clusters": 4,
           "share_ai_role_content": null,
           "suppressed_small_n": true
         }
@@ -70,14 +70,14 @@
           "ci95_high": null,
           "ci95_low": null,
           "month": "2026-11",
-          "n_vacancy_clusters": 2,
+          "n_vacancy_clusters": 3,
           "share_ai_role_content": null,
           "suppressed_small_n": true
         }
       ]
     },
     "relationship_candidates_rules": {
-      "AI_NONE_OBSERVED": 40
+      "AI_NONE_OBSERVED": 60
     },
     "role_change_examples": [],
     "term_emergence": []
@@ -87,29 +87,31 @@
     "by_status": {},
     "records": 0
   },
-  "generated_at_utc": "2026-11-20T06:21:11Z",
+  "generated_at_utc": "2026-11-21T13:31:59Z",
   "quality": {
     "last_qa_checks": 11,
     "last_qa_failures": [],
-    "last_qa_run_id": "20261120T062111Z_44687143609_validate",
-    "share_nation_unknown": 0.05,
-    "share_role_family_unknown_or_ambiguous": 0.825,
-    "title_only_refusals": 2
+    "last_qa_run_id": "20261121T133159Z_44909301593_validate",
+    "share_nation_unknown": 0.0667,
+    "share_role_family_unknown_or_ambiguous": 0.8333,
+    "title_only_refusals": 3
   },
   "role_families": {
     "AMBIGUOUS": 1,
-    "UNKNOWN": 32,
+    "UNKNOWN": 49,
     "administration_clerical": 1,
-    "allied_health": 4,
+    "allied_health": 5,
+    "clinical_support": 1,
     "estates_facilities": 1,
-    "nursing_midwifery": 1
+    "nursing_midwifery": 1,
+    "pharmacy": 1
   },
   "sources": [
     {
       "enabled": true,
       "endpoint_configured": true,
-      "last_message": "wrote observations/nhsjobs/2026-11-20/20261120T062104Z_44687143609_collect_nhsjobs.jsonl: 20 new or changed, 0 seen again",
-      "last_run_utc": "2026-11-20T06:21:06Z",
+      "last_message": "wrote observations/nhsjobs/2026-11-21/20261121T133151Z_44909301593_collect_nhsjobs.jsonl: 20 new or changed, 0 seen again",
+      "last_run_utc": "2026-11-21T13:31:53Z",
       "last_status": "OK",
       "name": "NHS Jobs (England and Wales)",
       "nation_scope": [
@@ -123,7 +125,7 @@
       "enabled": false,
       "endpoint_configured": false,
       "last_message": "NOT COLLECTED (safe stop): enabled is not true; endpoint is not filled in; documentation_url is not filled in; terms_url is not filled in; terms_reviewed_on is not filled in; format is not filled in; field_map.title is not mapped; field_map.url is not mapped",
-      "last_run_utc": "2026-11-20T06:21:06Z",
+      "last_run_utc": "2026-11-21T13:31:53Z",
       "last_status": "BLOCKED_NOT_CONFIGURED",
       "name": "NHS Scotland National Recruitment Portal",
       "nation_scope": [
@@ -136,7 +138,7 @@
       "enabled": false,
       "endpoint_configured": false,
       "last_message": "NOT COLLECTED (safe stop): enabled is not true; endpoint is not filled in; documentation_url is not filled in; terms_url is not filled in; terms_reviewed_on is not filled in; format is not filled in; field_map.title is not mapped; field_map.url is not mapped",
-      "last_run_utc": "2026-11-20T06:21:06Z",
+      "last_run_utc": "2026-11-21T13:31:53Z",
       "last_status": "BLOCKED_NOT_CONFIGURED",
       "name": "HSC Recruit / jobs.hscni.net (Northern Ireland)",
       "nation_scope": [
@@ -255,18 +257,18 @@
   ],
   "totals": {
     "clusters_by_nation": {
-      "England": 36,
-      "UNKNOWN": 2,
-      "Wales": 2
+      "England": 53,
+      "UNKNOWN": 4,
+      "Wales": 3
     },
     "cross_posted_clusters": 0,
-    "observations": 40,
-    "vacancy_clusters": 40
+    "observations": 60,
+    "vacancy_clusters": 60
   },
   "versions": {
     "ai_lexicon": "0.1.0",
     "code": "0.1.1",
-    "git_sha": "91e1b4ff754c35448cb9889d1052fabef5c0ff8f",
+    "git_sha": "7bafac946a1b72fbbba0969546cb01bbf069ffab",
     "pipeline_config": "0.1.0",
     "prompt_change_detection": "0.1.0",
     "prompt_classification": "0.1.0",
