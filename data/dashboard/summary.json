@@ -144,11 +144,11 @@
     "by_status": {},
     "records": 0
   },
-  "generated_at_utc": "2026-11-24T15:57:42Z",
+  "generated_at_utc": "2026-11-25T15:43:37Z",
   "quality": {
     "last_qa_checks": 11,
     "last_qa_failures": [],
-    "last_qa_run_id": "20261124T155741Z_45431421327_validate",
+    "last_qa_run_id": "20261125T154336Z_45648296625_validate",
     "share_nation_unknown": 0.0472,
     "share_role_family_unknown_or_ambiguous": 0.7547,
     "title_only_refusals": 5
@@ -170,8 +170,8 @@
     {
       "enabled": true,
       "endpoint_configured": true,
-      "last_message": "wrote observations/nhsjobs/2026-11-24/20261124T155718Z_45431421327_collect_nhsjobs.jsonl: 20 new or changed, 0 seen again",
-      "last_run_utc": "2026-11-24T15:57:20Z",
+      "last_message": "wrote observations/nhsjobs/2026-11-25/20261125T154314Z_45648296625_collect_nhsjobs.jsonl: 0 new or changed, 20 seen again",
+      "last_run_utc": "2026-11-25T15:43:15Z",
       "last_status": "OK",
       "name": "NHS Jobs (England and Wales)",
       "nation_scope": [
@@ -185,7 +185,7 @@
       "enabled": false,
       "endpoint_configured": false,
       "last_message": "NOT COLLECTED (safe stop): enabled is not true; endpoint is not filled in; documentation_url is not filled in; terms_url is not filled in; terms_reviewed_on is not filled in; format is not filled in; field_map.title is not mapped; field_map.url is not mapped",
-      "last_run_utc": "2026-11-24T15:57:20Z",
+      "last_run_utc": "2026-11-25T15:43:15Z",
       "last_status": "BLOCKED_NOT_CONFIGURED",
       "name": "NHS Scotland National Recruitment Portal",
       "nation_scope": [
@@ -198,7 +198,7 @@
       "enabled": false,
       "endpoint_configured": false,
       "last_message": "NOT COLLECTED (safe stop): enabled is not true; endpoint is not filled in; documentation_url is not filled in; terms_url is not filled in; terms_reviewed_on is not filled in; format is not filled in; field_map.title is not mapped; field_map.url is not mapped",
-      "last_run_utc": "2026-11-24T15:57:20Z",
+      "last_run_utc": "2026-11-25T15:43:16Z",
       "last_status": "BLOCKED_NOT_CONFIGURED",
       "name": "HSC Recruit / jobs.hscni.net (Northern Ireland)",
       "nation_scope": [
@@ -322,13 +322,13 @@
       "Wales": 4
     },
     "cross_posted_clusters": 0,
-    "observations": 120,
+    "observations": 140,
     "vacancy_clusters": 106
   },
   "versions": {
     "ai_lexicon": "0.1.0",
     "code": "0.1.1",
-    "git_sha": "48bd12dc43c743b471f3f6eb574ded23937b1ded",
+    "git_sha": "18dcd2eab7dbe0f3e97394d77d1cdc64819c5029",
     "pipeline_config": "0.1.0",
     "prompt_change_detection": "0.1.0",
     "prompt_classification": "0.1.0",
