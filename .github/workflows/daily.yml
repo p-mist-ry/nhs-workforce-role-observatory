@@ -5,8 +5,13 @@
 #   * when you press "Run workflow" on the Actions tab (workflow_dispatch)
 #   * a lighter "check" job whenever you edit config, prompts, scripts or tests
 #
-# Before the first run, set: Settings > Actions > General >
-# Workflow permissions > "Read and write permissions" > Save.
+# Advert content is stored ONLY in the private vault repository
+# (<your account>/nhs-observatory-vault). This public repository receives
+# results: logs and the dashboard data. The vault is opened with the
+# VAULT_TOKEN secret (README: "The private vault").
+#
+# Run logs of a public repository are public: the scripts print counts,
+# never advert text.
 
 name: Daily observatory run
 
@@ -39,10 +44,10 @@ jobs:
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
         with:
           fetch-depth: 2
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt
@@ -57,16 +62,37 @@ jobs:
   daily:
     if: github.event_name != 'push'
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 120
+    env:
+      OBSERVATORY_VAULT: ${{ github.workspace }}/vault
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - run: pip install -r requirements.txt
 
       - name: Unit tests
+        env:
+          OBSERVATORY_VAULT: ""      # tests never touch the vault
         run: python -m unittest discover -s tests -v
+
+      # Fails here if the VAULT_TOKEN secret is missing, wrong or expired.
+      - name: Open the private vault
+        id: vault
+        uses: actions/checkout@v5
+        with:
+          repository: ${{ github.repository_owner }}/nhs-observatory-vault
+          token: ${{ secrets.VAULT_TOKEN }}
+          path: vault
+          fetch-depth: 1
+
+      # Copies the 2026 pilot files into the vault once (never overwrites).
+      - name: Bring pilot data into the vault
+        run: |
+          mkdir -p vault/observations
+          if [ -d data/observations ]; then cp -rn data/observations/. vault/observations/; fi
+          rm -f vault/observations/README.md
 
       # Collectors stop safely (and log why) until their source is configured.
       - name: Collect NHS Jobs (England and Wales)
@@ -78,6 +104,9 @@ jobs:
       - name: Collect HSC Northern Ireland
         continue-on-error: true
         run: python scripts/collect_hscni.py
+      - name: Ask NHS Jobs search which adverts mention AI terms
+        continue-on-error: true
+        run: python scripts/probe_feed_search.py
 
       - name: Normalise
         run: python scripts/normalize.py
@@ -98,32 +127,49 @@ jobs:
         run: python scripts/validate.py --git-base HEAD
 
       - name: Build dashboard data
-        if: always()
+        if: always() && steps.vault.outcome == 'success'
         run: python scripts/build_dashboard_data.py
 
-      - name: Keep intermediate files for 30 days (downloadable from this run)
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: derived-${{ github.run_id }}
-          path: data/derived
-          retention-days: 30
-          if-no-files-found: ignore
+      # Advert content goes to the private vault only.
+      - name: Save to the private vault
+        if: always() && steps.vault.outcome == 'success'
+        working-directory: vault
+        run: |
+          git config user.name "observatory-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          for p in observations probes derived/genai_runs; do
+            if [ -e "$p" ]; then git add "$p"; fi
+          done
+          if git diff --cached --quiet; then
+            echo "Nothing new for the vault."
+            exit 0
+          fi
+          git commit -q -m "Daily run ${{ github.run_id }}"
+          git push -q
 
-      # Logs and raw observations are always saved, even if validation failed.
-      - name: Commit results
+      - name: Record that the vault could not be opened
+        if: failure() && steps.vault.outcome == 'failure'
+        run: >
+          python scripts/log_event.py open_vault BLOCKED_VAULT_UNAVAILABLE
+          "Could not open the private vault, so nothing was collected. Check that the
+          VAULT_TOKEN secret exists and has not expired (README: Renewing the vault key)."
+
+      # Only results (logs and dashboard data) are published here.
+      - name: Publish results
         if: always()
         run: |
           git config user.name "observatory-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data logs docs/data
+          for p in logs docs/data data/dashboard; do
+            if [ -e "$p" ]; then git add "$p"; fi
+          done
           if git diff --cached --quiet; then
-            echo "Nothing new to commit."
+            echo "Nothing new to publish."
             exit 0
           fi
-          git commit -m "Daily run ${{ github.run_id }}"
-          git pull --rebase origin main
-          git push
+          git commit -q -m "Daily run ${{ github.run_id }}"
+          git pull -q --rebase origin main
+          git push -q
 
       - name: Report validation failure
         if: steps.validate.outcome == 'failure'
