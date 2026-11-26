@@ -21,7 +21,7 @@
 #          as an inference, not an observed fact).
 # =====================================================================
 
-version: 0.2.1
+version: 0.2.2
 
 defaults:
   # Replace with your own contact e-mail before enabling any source.
@@ -42,7 +42,7 @@ sources:
     nation_scope: [England, Wales]
     priority: 1                 # lower number wins when duplicates are merged
     collector: scripts/collect_nhsjobs.py
-    enabled: true              # FILL IN: change to true in the same edit as the terms fields
+    enabled: true
     homepage_url: "https://www.jobs.nhs.uk"
     # Source: NHSBSA "NHS Jobs Self-Serve Job Adverts API" V1.07, linked from
     # the NHSBSA page "NHS Jobs integration and benefits". The search_xml
@@ -51,13 +51,14 @@ sources:
     endpoint: "https://www.jobs.nhs.uk/api/v1/search_xml"
     format: xml
     record_path: vacancyDetails  # each vacancy is one <vacancyDetails> element
-    params:
-      limit: 20                 # value used in the document's own example
+    params:                     # all three documented in the API guide V1.07
+      limit: 100                # documented maximum adverts per page
+      sort: publicationDateAsc  # keeps the page order stable while paging
     pagination:
-      mode: none                # PILOT: first page only. See README Part 2 to enable paging.
-      param: null
+      mode: page_param
+      param: page               # documented "page" parameter
       start: 1
-      max_pages: 1
+      max_pages: 250            # safety cap: 25,000 adverts (11,631 live on 2026-11-24)
     field_map:                  # element names checked against the live feed on 2026-11-19
       source_record_id: id
       url: url
@@ -69,8 +70,8 @@ sources:
       contract_text: type
       closing_date_text: closeDate
       posted_date_text: postDate
-    terms_url: "https://www.jobs.nhs.uk/candidate/acceptable-use"    # FILL IN: address of the NHS Jobs terms and conditions page
-    terms_reviewed_on: 2026-11-19     # FILL IN: date you read them, as YYYY-MM-DD
+    terms_url: "https://www.jobs.nhs.uk/candidate/acceptable-use"   # FILL IN: paste your terms page address here, in quotation marks
+    terms_reviewed_on: 2026-11-19
     notes: >
       Covers England and most of Wales. Some Welsh and English employers
       also advertise on their own sites or Trac; those are not covered.
