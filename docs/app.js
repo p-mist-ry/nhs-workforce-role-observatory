@@ -29,6 +29,10 @@ function when(iso) {
   return d.toLocaleString("en-GB", { day: "numeric", month: "short", year: "numeric",
     hour: "2-digit", minute: "2-digit", timeZone: "UTC" }) + " UTC";
 }
+function day(iso) {
+  const d = new Date(iso + "T12:00:00Z");
+  return isNaN(d) ? iso : d.toLocaleDateString("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
+}
 function colour(nation) { return `var(${NATION_VAR[nation] || "--unknown"})`; }
 function safeUrl(u) { return typeof u === "string" && /^https:\/\//.test(u) ? u : null; }
 function empty(container, message) {
@@ -175,11 +179,19 @@ function renderChanges(s) {
     li.append(el("p", { class: "meta" },
       `${p.employer || "Unknown employer"}, ${p.nation}. First advert ${p.first_seen_a}, later advert ${p.first_seen_b}.`));
     li.append(el("strong", {}, p.title_b || p.title_a || "Untitled"));
-    p.ai_sentences_added.forEach(q => li.append(el("blockquote", {}, q)));
-    p.ai_sentences_removed.forEach(q => li.append(el("blockquote", { class: "removed" }, q)));
+    if (Array.isArray(p.ai_sentences_added)) {
+      p.ai_sentences_added.forEach(q => li.append(el("blockquote", {}, q)));
+      (p.ai_sentences_removed || []).forEach(q => li.append(el("blockquote", { class: "removed" }, q)));
+    } else {
+      const parts = [];
+      const plural = n => `AI-related sentence${n === 1 ? "" : "s"}`;
+      if (p.n_ai_sentences_added) parts.push(`${p.n_ai_sentences_added} ${plural(p.n_ai_sentences_added)} added`);
+      if (p.n_ai_sentences_removed) parts.push(`${p.n_ai_sentences_removed} ${plural(p.n_ai_sentences_removed)} removed`);
+      if (parts.length) li.append(el("p", {}, parts.join(", ") + ". Open the adverts to read them."));
+    }
     const tasks = [];
-    if (p.task_categories_added.length) tasks.push("Tasks added: " + p.task_categories_added.join(", "));
-    if (p.task_categories_removed.length) tasks.push("Tasks removed: " + p.task_categories_removed.join(", "));
+    if (p.task_categories_added.length) tasks.push("Tasks added: " + p.task_categories_added.join(", ").replace(/_/g, " "));
+    if (p.task_categories_removed.length) tasks.push("Tasks removed: " + p.task_categories_removed.join(", ").replace(/_/g, " "));
     if (tasks.length) li.append(el("p", {}, tasks.join(". ")));
     const links = el("p");
     [["Earlier advert", p.url_a], ["Later advert", p.url_b]].forEach(([label, u], i) => {
@@ -203,7 +215,9 @@ function renderTerms(s) {
     const li = el("li");
     li.append(el("span", { class: "month" }, t.first_month));
     const href = safeUrl(t.record_url);
-    li.append(href ? el("a", { href, rel: "noopener", title: t.sentence }, t.evidence) : el("span", {}, t.evidence));
+    const attrs = { href, rel: "noopener" };
+    if (t.sentence) attrs.title = t.sentence;
+    li.append(href ? el("a", attrs, t.evidence) : el("span", {}, t.evidence));
     li.append(document.createTextNode(` (${t.category.replace(/_/g, " ")})`));
     return li;
   }));
@@ -213,6 +227,22 @@ function rowOf(...cells) {
   const tr = el("tr");
   tr.append(...cells);
   return tr;
+}
+
+function renderSearch(s) {
+  const box = document.getElementById("search");
+  const fs = s.ai.feed_search;
+  if (!fs) return empty(box, "NHS Jobs search has not been checked yet.");
+  const intro = el("p", { class: "lede" },
+    `${day(fs.date)}: ${num(fs.any_term)} adverts matched at least one term` +
+    (fs.live_adverts ? `, out of ${num(fs.live_adverts)} live NHS Jobs adverts collected that day.` : "."));
+  const t = el("table", { class: "data" });
+  t.append(rowOf(el("th", {}, "Search term"), el("th", {}, "Adverts matched")));
+  fs.terms.forEach(x => {
+    const note = x.error ? " (search failed)" : x.complete === false ? " (at least; stopped at page limit)" : "";
+    t.append(rowOf(el("td", {}, x.keyword), el("td", { class: "num" }, num(x.n_matches) + note)));
+  });
+  box.replaceChildren(intro, t);
 }
 
 function table(id, header, rows) {
@@ -297,7 +327,7 @@ async function main() {
       "No data has been published yet. The daily workflow creates data/summary.json after its first successful run.";
     return;
   }
-  const steps = [renderStatus, renderIntervals, renderTrend, renderChanges, renderTerms,
+  const steps = [renderStatus, renderIntervals, renderTrend, renderSearch, renderChanges, renderTerms,
                  renderCounts, renderSources, renderQuality];
   for (const step of steps) {
     try { step(s); } catch (e) { console.error(step.name, e); }

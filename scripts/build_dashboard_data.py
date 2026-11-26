@@ -3,6 +3,10 @@
 GitHub Pages can only serve files inside /docs, so the output is written
 twice: data/dashboard/summary.json (the record) and docs/data/summary.json
 (the copy the website loads).
+
+These files are PUBLIC. Unless config/pipeline.yaml publish.evidence_snippets
+is true, no sentence quoted from an advert is written: only labels, counts,
+dates, the matched lexicon term and the link to the advert on its source site.
 """
 from __future__ import annotations
 
@@ -26,6 +30,45 @@ def last_rows(csv_path, key):
     return latest
 
 
+def public_emergence(e):
+    """Keep the matched term and the advert link; drop the quoted sentence."""
+    return {k: v for k, v in e.items() if k != "sentence"}
+
+
+def public_pair(p, keep_text=False):
+    """Add counts of AI sentences; drop the quoted sentences unless allowed."""
+    drop = () if keep_text else ("ai_sentences_added", "ai_sentences_removed")
+    out = {k: v for k, v in p.items() if k not in drop}
+    out["n_ai_sentences_added"] = len(p.get("ai_sentences_added") or [])
+    out["n_ai_sentences_removed"] = len(p.get("ai_sentences_removed") or [])
+    return out
+
+
+def feed_search_summary(normalized):
+    """Latest day's NHS Jobs search matches per term, against live adverts that day."""
+    probes = [p for f in common.iter_files(common.PROBES, "*.jsonl") for p in common.read_jsonl(f)
+              if p.get("schema") == "feed_search_probe/1"]
+    if not probes:
+        return None
+    latest = max(p["observed_date"] for p in probes)
+    today = [p for p in probes if p["observed_date"] == latest]
+    source = today[0]["source_id"]
+    live = {r.get("source_record_id") for r in normalized
+            if r.get("source_id") == source and latest in (r.get("observed_dates") or [])}
+    live.discard(None)
+    any_term = set()
+    terms = []
+    for p in sorted(today, key=lambda p: -p["n_matches"]):
+        ids = set(p.get("source_record_ids") or [])
+        any_term |= ids
+        terms.append({"probe_id": p["probe_id"], "keyword": p["keyword"],
+                      "n_matches": len(ids), "n_matches_live": len(ids & live) if live else None,
+                      "complete": p.get("complete"), "error": p.get("error")})
+    return {"date": latest, "source_id": source, "live_adverts": len(live) or None,
+            "any_term": len(any_term), "terms": terms,
+            "verification": "UNVERIFIED_SEARCH_MATCH"}
+
+
 def main():
     run_id = common.make_run_id("build_dashboard_data")
     started = common.utc_now_iso()
@@ -37,8 +80,11 @@ def main():
     emergence = load(d / "changes" / "term_emergence.jsonl")
     pairs = load(d / "changes" / "role_change_candidates.jsonl")
     genai = [r for f in common.iter_files(d / "genai_runs", "*.jsonl") for r in common.read_jsonl(f)]
-    n_obs = sum(1 for f in common.iter_files(d / "normalized", "*.jsonl") for _ in common.read_jsonl(f))
-    min_n = int(common.load_yaml(common.CONFIG / "pipeline.yaml")["change_detection"]["min_adverts_per_cell"])
+    normalized = [r for f in common.iter_files(d / "normalized", "*.jsonl") for r in common.read_jsonl(f)]
+    n_obs = sum(len(r.get("observed_dates") or [1]) for r in normalized)
+    pcfg = common.load_yaml(common.CONFIG / "pipeline.yaml")
+    min_n = int(pcfg["change_detection"]["min_adverts_per_cell"])
+    snippets = bool((pcfg.get("publish") or {}).get("evidence_snippets"))
 
     src_cfg = common.load_yaml(common.CONFIG / "sources.yaml")["sources"]
     runs_by_source = last_rows(common.LOGS / "runs.csv", "source_id")
@@ -70,7 +116,10 @@ def main():
         ai_by_nation[nation] = {"n": len(sub), "n_ai": None if small else k,
                                 "share": None if small or not sub else round(k / len(sub), 4),
                                 "suppressed_small_n": small}
-    interesting = [p for p in pairs if p["ai_sentences_added"] or p["ai_sentences_removed"]
+    pairs = [public_pair(p, keep_text=snippets) for p in pairs]
+    if not snippets:
+        emergence = [public_emergence(e) for e in emergence]
+    interesting = [p for p in pairs if p["n_ai_sentences_added"] or p["n_ai_sentences_removed"]
                    or p["task_categories_added"] or p["task_categories_removed"]]
     interesting.sort(key=lambda p: p["first_seen_b"], reverse=True)
 
@@ -103,6 +152,8 @@ def main():
             "change_signals": signals,
             "term_emergence": emergence[:100],
             "role_change_examples": interesting[:50],
+            "evidence_snippets_published": snippets,
+            "feed_search": feed_search_summary(normalized),
         },
         "genai": {"records": len(genai), "by_status": dict(Counter(r.get("status") for r in genai))},
         "quality": {

@@ -215,6 +215,41 @@ def run(clusters, tax, lex):
             for c in clusters]
 
 
+def load_search_matches():
+    """{(source_id, source_record_id): {probe_id: first date matched}} from feed search probes."""
+    index = defaultdict(dict)
+    for f in common.iter_files(common.PROBES, "*.jsonl"):
+        for p in common.read_jsonl(f):
+            if p.get("schema") != "feed_search_probe/1":
+                continue
+            for rid in p.get("source_record_ids") or []:
+                seen = index[(p["source_id"], rid)]
+                if p["probe_id"] not in seen or p["observed_date"] < seen[p["probe_id"]]:
+                    seen[p["probe_id"]] = p["observed_date"]
+    return index
+
+
+def attach_search_matches(results, clusters, index):
+    """Record which NHS Jobs search terms returned each vacancy (UNVERIFIED matches).
+
+    Kept apart from the rule-based AI evidence: the search sees the full
+    advert text, but returns no text to check, so it never feeds the
+    headline indicator."""
+    by_id = {c["cluster_id"]: c for c in clusters}
+    for r in results:
+        found = {}
+        for m in by_id[r["cluster_id"]].get("members", []):
+            rid = m.get("source_record_id")
+            if rid is None and "|id|" in m.get("advert_key", ""):
+                rid = m["advert_key"].split("|id|", 1)[1].rsplit("|ep", 1)[0]
+            for probe, date in index.get((m.get("source_id"), rid), {}).items():
+                if probe not in found or date < found[probe]:
+                    found[probe] = date
+        r["ai"]["feed_search_matches"] = dict(sorted(found.items()))
+        r["ai"]["feed_search_verification"] = "UNVERIFIED_SEARCH_MATCH" if found else None
+    return results
+
+
 def main():
     run_id = common.make_run_id("classify_rules")
     started = common.utc_now_iso()
@@ -222,7 +257,7 @@ def main():
     lex = common.load_yaml(common.CONFIG / "ai_lexicon.yaml")
     path = common.DERIVED / "dedup" / "vacancy_clusters.jsonl"
     clusters = list(common.read_jsonl(path)) if path.exists() else []
-    out = run(clusters, tax, lex)
+    out = attach_search_matches(run(clusters, tax, lex), clusters, load_search_matches())
     n = common.write_jsonl(common.DERIVED / "classified" / "rules_classification.jsonl", out)
     common.log_run(run_id, "classify_rules", started, "OK" if clusters else "OK_EMPTY", "",
                    len(clusters), n, f"taxonomy {tax['version']}, lexicon {lex['version']}")

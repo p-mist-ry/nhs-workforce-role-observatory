@@ -8,8 +8,12 @@ Level 2 - vacancy cluster: adverts for the same vacancy posted on more than
 Counting rule used everywhere downstream: one cluster = one unit of
 advertised demand. Nothing is deleted; every link records its method.
 
-Input : data/derived/normalized/**/*.jsonl
-Output: data/derived/dedup/vacancy_clusters.jsonl (rebuilt each run)
+Input : derived/normalized/*.jsonl (advert versions with their sighting dates)
+Output: derived/dedup/vacancy_clusters.jsonl (rebuilt each run)
+
+Only adverts with the same employer and the same title, posted within the
+re-advert window of each other, are compared, so the run stays fast as the
+archive grows.
 """
 from __future__ import annotations
 
@@ -57,6 +61,10 @@ class UnionFind:
             self.parent[max(ra, rb)] = min(ra, rb)
 
 
+def record_dates(r):
+    return r.get("observed_dates") or ([r["observed_date"]] if r.get("observed_date") else [])
+
+
 def build_adverts(records, gap_days):
     by_key = defaultdict(list)
     for r in records:
@@ -66,43 +74,69 @@ def build_adverts(records, gap_days):
             key = f"{r['source_id']}|url|{r['record_url']}"
         else:
             key = f"{r['source_id']}|sha|{r.get('content_sha256_original')}"
-        by_key[key].append(r)
+        for d in record_dates(r):
+            by_key[key].append((d, r))
     adverts = []
-    for key, obs in by_key.items():
-        obs.sort(key=lambda r: (r.get("observed_date") or "", r["observation_id"]))
+    for key, items in by_key.items():
+        items.sort(key=lambda x: (x[0], x[1]["observation_id"]))
         current, episode = [], 0
-        for r in obs:
-            if current and days_between(current[-1]["observed_date"], r["observed_date"]) > gap_days:
+        for d, r in items:
+            if current and days_between(current[-1][0], d) > gap_days:
                 adverts.append((f"{key}|ep{episode}", current))
                 current, episode = [], episode + 1
-            current.append(r)
+            current.append((d, r))
         if current:
             adverts.append((f"{key}|ep{episode}", current))
     return adverts
 
 
-def advert_summary(key, obs):
-    first = obs[0]
+def advert_summary(key, items):
+    """items: (date, advert version) pairs for one advert episode, in date order."""
+    first = items[0][1]
+    ids = []
+    for _d, r in items:
+        if r["observation_id"] not in ids:
+            ids.append(r["observation_id"])
     return {
         "advert_key": key,
         "source_id": first["source_id"],
+        "source_record_id": first.get("source_record_id"),
         "record_url": first.get("record_url"),
-        "first_seen": obs[0]["observed_date"],
-        "last_seen": obs[-1]["observed_date"],
-        "n_observations": len(obs),
-        "observation_ids": [o["observation_id"] for o in obs],
+        "first_seen": items[0][0],
+        "last_seen": items[-1][0],
+        "n_observations": len({d for d, _r in items}),
+        "observation_ids": ids,
         "rep": first,
     }
+
+
+TRUNCATION_MARKS = ("...", "\u2026")
+MIN_FULL_TEXT_CHARS = 300
+
+
+def full_text(text):
+    """Return the text only if it looks like a complete advert, else None."""
+    if not text:
+        return None
+    text = text.strip()
+    if text.endswith(TRUNCATION_MARKS) or len(text) < MIN_FULL_TEXT_CHARS:
+        return None
+    return text
+
+
+def add_days(date_str, n):
+    return (dt.date.fromisoformat(date_str) + dt.timedelta(days=n)).isoformat()
 
 
 def link_adverts(ads, min_sim, gap_days):
     """Return list of (i, j, method, similarity)."""
     links = []
-    blocks = defaultdict(list)
-    for i, a in enumerate(ads):
+    blocks = defaultdict(list)       # same normalised title AND same employer
+    for i, a in enumerate(ads):      # ads are already sorted by first_seen
         tkey = common.norm_key(val(a["rep"], "title"))
-        if tkey:
-            blocks[tkey].append(i)
+        ekey = common.norm_key(val(a["rep"], "employer"))
+        if tkey and ekey:
+            blocks[(tkey, ekey)].append(i)
     cache = {}
 
     def sh(i):
@@ -112,17 +146,15 @@ def link_adverts(ads, min_sim, gap_days):
 
     for idxs in blocks.values():
         for x in range(len(idxs)):
+            a = ads[idxs[x]]
+            # later adverts can only match if posted within the re-advert gap
+            # or while this advert was still live
+            limit = max(add_days(a["first_seen"], gap_days), a["last_seen"])
             for y in range(x + 1, len(idxs)):
                 i, j = idxs[x], idxs[y]
-                a, b = ads[i], ads[j]
-                emp_a = common.norm_key(val(a["rep"], "employer"))
-                emp_b = common.norm_key(val(b["rep"], "employer"))
-                if not emp_a or not emp_b or emp_a != emp_b:
-                    continue
-                # time windows must overlap (allowing the re-advert gap)
-                if days_between(a["first_seen"], b["first_seen"]) > gap_days and \
-                        not (a["first_seen"] <= b["last_seen"] and b["first_seen"] <= a["last_seen"]):
-                    continue
+                b = ads[j]
+                if b["first_seen"] > limit:
+                    break
                 cd_a, cd_b = val(a["rep"], "closing_date"), val(b["rep"], "closing_date")
                 if cd_a and cd_b and cd_a != cd_b:
                     continue
@@ -135,8 +167,11 @@ def link_adverts(ads, min_sim, gap_days):
                         if cd_a and cd_b and pay_a and pay_b and pay_a.get("min") == pay_b.get("min"):
                             links.append((i, j, "cross_source_exact_fields_no_text", None))
                 else:
-                    da, db = val(a["rep"], "description"), val(b["rep"], "description")
-                    if da and db and common.sha256_text(da) == common.sha256_text(db) and cd_a and cd_a == cd_b:
+                    # Same site, different advert ids: only merge when the FULL
+                    # text is identical. Truncated feed extracts are not enough,
+                    # because an employer's separate adverts often open alike.
+                    da, db = full_text(val(a["rep"], "description")), full_text(val(b["rep"], "description"))
+                    if da and db and da == db and cd_a and cd_a == cd_b:
                         links.append((i, j, "same_source_identical_text", 1.0))
     return links
 

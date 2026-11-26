@@ -80,7 +80,7 @@ if __name__ == "__main__":
 
 
 class TestSightings(unittest.TestCase):
-    """Second sighting of an unchanged advert stores a small pointer, not the text again."""
+    """An unchanged advert is stored once; later days add it to a compact 'seen again' list."""
 
     def test_unchanged_advert_stored_once(self):
         import tempfile
@@ -95,24 +95,26 @@ class TestSightings(unittest.TestCase):
             tmp = Path(tmp)
             with mock.patch.object(cc.common, "OBSERVATIONS", tmp / "obs"), \
                  mock.patch.object(cc.common, "DERIVED", tmp / "derived"), \
+                 mock.patch.object(cc.common, "storage_problem", return_value=None), \
                  mock.patch.object(cc.common, "log_run"), \
                  mock.patch.object(cc, "load_source", return_value=(src, DEFAULTS)), \
                  mock.patch.object(cc, "robots_allows", return_value=True), \
                  mock.patch.object(cc, "fetch", return_value=(200, body)), \
+                 mock.patch.object(cc.common, "today_utc", side_effect=["2026-11-20", "2026-11-21"]), \
                  mock.patch.object(cc.common, "make_run_id", side_effect=["run1", "run2", "n1"]):
                 self.assertEqual(cc.collect("synthetic"), 0)
                 self.assertEqual(cc.collect("synthetic"), 0)
                 files = sorted((tmp / "obs").rglob("*.jsonl"))
                 recs = [r for f in files for r in cc.common.read_jsonl(f)]
-                self.assertEqual([r["schema"] for r in recs], ["raw_observation/1", "raw_sighting/1"])
-                self.assertEqual(recs[1]["same_content_as"], recs[0]["observation_id"])
+                self.assertEqual([r["schema"] for r in recs], ["raw_observation/1", "raw_sighting_batch/1"])
+                self.assertEqual(recs[1]["items"], [recs[0]["observation_id"]])
                 self.assertIn("[REDACTED_PHONE]", recs[0]["mapped"]["description"])
                 with mock.patch.object(normalize.common, "load_providers", return_value=[]):
                     normalize.main()
                 out = [r for f in (tmp / "derived").rglob("*.jsonl") for r in cc.common.read_jsonl(f)]
-                self.assertEqual(len(out), 2)
-                self.assertEqual(out[1]["content_from_observation_id"], recs[0]["observation_id"])
-                self.assertEqual(out[1]["observed"]["title"]["value"], "Porter")
+                self.assertEqual(len(out), 1)       # one advert version...
+                self.assertEqual(out[0]["observed_dates"], ["2026-11-20", "2026-11-21"])  # ...seen twice
+                self.assertEqual(out[0]["observed"]["title"]["value"], "Porter")
 
 
 class TestPaging(unittest.TestCase):
@@ -128,6 +130,7 @@ class TestPaging(unittest.TestCase):
                     "pagination": {"mode": "page_param", "param": "page", "start": 1, "max_pages": 5}})
         with tempfile.TemporaryDirectory() as tmp:
             with mock.patch.object(cc.common, "OBSERVATIONS", Path(tmp)), \
+                 mock.patch.object(cc.common, "storage_problem", return_value=None), \
                  mock.patch.object(cc.common, "log_run"), \
                  mock.patch.object(cc, "load_source", return_value=(src, DEFAULTS)), \
                  mock.patch.object(cc, "robots_allows", return_value=True), \

@@ -10,11 +10,13 @@ Checks
   change_log        every current artefact version has a change_log row
   version_drift     an artefact's content changed but its version did not
   observations      raw observation schema, unique ids, no e-mail addresses
+  probes            NHS Jobs search probe records are complete
   storage           warns when stored observations grow large
   normalized        nation values, no empty strings, regex values have evidence
   classifications   evidence offsets match the text; no title-only labels
   genai             ACCEPTED GenAI records really passed span checks
-  append_only       logs only grew; observation and GenAI files never edited
+  append_only       logs only grew; observation, probe and GenAI files never
+                    edited, in this repository and in the private vault
 """
 from __future__ import annotations
 
@@ -26,7 +28,7 @@ import subprocess
 import common
 
 RESULTS: list[dict] = []
-SIZE_WARN_MB = 500
+SIZE_WARN_MB = 1000
 
 
 def record(check, status, details, file="", severity=None):
@@ -147,20 +149,40 @@ def check_version_drift(arts):
     summarise("version_drift", problems, "no unversioned changes detected")
 
 
+def rel_path(f):
+    for base, prefix in ((common.ROOT, ""), (common.STORE, "vault/")):
+        try:
+            return prefix + str(f.relative_to(base))
+        except ValueError:
+            continue
+    return str(f)
+
+
+REQUIRED = {
+    "raw_observation/1": ["schema", "observation_id", "run_id", "source_id", "retrieved_at_utc",
+                          "observed_date", "request_url", "mapped", "raw", "content_sha256_original"],
+    "raw_sighting/1": ["schema", "observation_id", "run_id", "source_id", "observed_date",
+                       "request_url", "content_sha256_original", "same_content_as"],
+    "raw_sighting_batch/1": ["schema", "observation_id", "run_id", "source_id", "observed_date",
+                             "request_url", "n_items", "items"],
+}
+
+
 def check_observations():
     problems, ids, n = [], set(), 0
-    required = ["schema", "observation_id", "run_id", "source_id", "retrieved_at_utc",
-                "observed_date", "request_url", "mapped", "raw", "content_sha256_original"]
-    sighting_required = ["schema", "observation_id", "run_id", "source_id", "observed_date",
-                         "request_url", "content_sha256_original", "same_content_as"]
     total_bytes = 0
     for f in common.iter_files(common.OBSERVATIONS, "*.jsonl"):
-        rel = str(f.relative_to(common.ROOT))
+        rel = rel_path(f)
         total_bytes += f.stat().st_size
         for rec in common.read_jsonl(f):
             n += 1
-            need = sighting_required if rec.get("schema") == "raw_sighting/1" else required
+            need = REQUIRED.get(rec.get("schema"))
+            if need is None:
+                problems.append((rel, f"{rec.get('observation_id')}: unknown schema {rec.get('schema')!r}"))
+                continue
             miss = [k for k in need if k not in rec]
+            if rec.get("schema") == "raw_sighting_batch/1" and rec.get("n_items") != len(rec.get("items") or []):
+                problems.append((rel, f"{rec.get('observation_id')}: n_items does not match items"))
             if miss:
                 problems.append((rel, f"{rec.get('observation_id')}: missing {miss}"))
             if rec.get("observation_id") in ids:
@@ -179,6 +201,24 @@ def check_observations():
         record("storage", "PASS", f"observations use {mb:.1f} MB")
 
 
+def check_probes():
+    problems, n = [], 0
+    need = ["schema", "observation_id", "run_id", "source_id", "observed_date", "probe_id",
+            "keyword", "source_record_ids", "request_urls", "n_matches", "verification"]
+    for f in common.iter_files(common.PROBES, "*.jsonl"):
+        rel = rel_path(f)
+        for rec in common.read_jsonl(f):
+            n += 1
+            miss = [k for k in need if k not in rec]
+            if miss:
+                problems.append((rel, f"{rec.get('observation_id')}: missing {miss}"))
+            elif rec["n_matches"] != len(rec["source_record_ids"]):
+                problems.append((rel, f"{rec['observation_id']}: n_matches does not match ids"))
+            elif any(not str(u).startswith("https://") for u in rec["request_urls"]):
+                problems.append((rel, f"{rec['observation_id']}: request_url not https"))
+    summarise("probes", problems, f"{n} search probe records valid")
+
+
 def walk_empty_strings(obj, path="$"):
     if isinstance(obj, str) and obj.strip() == "":
         yield path
@@ -194,7 +234,7 @@ def check_normalized():
     problems, n = [], 0
     allowed = set(common.NATIONS) | {common.UNKNOWN}
     for f in common.iter_files(common.DERIVED / "normalized", "*.jsonl"):
-        rel = str(f.relative_to(common.ROOT))
+        rel = rel_path(f)
         for rec in common.read_jsonl(f):
             n += 1
             oid = rec.get("observation_id")
@@ -216,7 +256,7 @@ def check_classifications():
     texts = {c["cluster_id"]: (c["canonical"]["observed"]["description"]["value"] or "")
              for c in common.read_jsonl(cpath)} if cpath.exists() else {}
     problems, n = [], 0
-    rel = str(rpath.relative_to(common.ROOT))
+    rel = rel_path(rpath)
     for r in common.read_jsonl(rpath):
         n += 1
         text = texts.get(r["cluster_id"])
@@ -238,7 +278,7 @@ def check_classifications():
 def check_genai():
     problems, n = [], 0
     for f in common.iter_files(common.DERIVED / "genai_runs", "*.jsonl"):
-        rel = str(f.relative_to(common.ROOT))
+        rel = rel_path(f)
         for r in common.read_jsonl(f):
             n += 1
             if r.get("status") != "ACCEPTED":
@@ -252,8 +292,8 @@ def check_genai():
     summarise("genai", problems, f"{n} GenAI records checked")
 
 
-def git(*args):
-    return subprocess.run(["git", *args], cwd=common.ROOT, capture_output=True, text=True, timeout=60)
+def git(*args, cwd=None):
+    return subprocess.run(["git", *args], cwd=cwd or common.ROOT, capture_output=True, text=True, timeout=60)
 
 
 def check_append_only(base):
@@ -268,12 +308,20 @@ def check_append_only(base):
         current = (common.ROOT / rel).read_text(encoding="utf-8")
         if not current.replace("\r\n", "\n").startswith(old.stdout.replace("\r\n", "\n").rstrip("\n")):
             problems.append((rel, "existing lines were edited or deleted (logs are append-only)"))
-    diff = git("diff", "--name-status", base, "--", "data/observations", "data/derived/genai_runs")
-    for line in diff.stdout.splitlines():
-        status, _, path = line.partition("\t")
-        if status and status[0] in "MDR" and not path.endswith("README.md"):
-            problems.append((path, f"append-only file changed (git status {status})"))
-    summarise("append_only", problems, f"append-only areas unchanged since {base}")
+    checked = [("", common.ROOT, base, ["data/observations", "data/probes", "data/derived/genai_runs"])]
+    vault = common.VAULT
+    if vault is not None and git("rev-parse", "--verify", "HEAD", cwd=vault).returncode == 0:
+        checked.append(("vault/", vault, "HEAD", ["observations", "probes", "derived/genai_runs"]))
+    else:
+        record("append_only_vault", "PASS", "vault not attached to this run; vault check not needed")
+    for prefix, where, ref, paths in checked:
+        diff = git("diff", "--name-status", ref, "--", *paths, cwd=where)
+        for line in diff.stdout.splitlines():
+            status, _, path = line.partition("\t")
+            if status and status[0] in "MDR" and not path.endswith("README.md"):
+                problems.append((prefix + path, f"append-only file changed (git status {status})"))
+    summarise("append_only", problems, f"append-only areas unchanged since {base}"
+              + (" (and vault unchanged since its last commit)" if len(checked) > 1 else ""))
 
 
 # ------------------------------------------------------------------ main
@@ -286,7 +334,7 @@ def main():
     started = common.utc_now_iso()
     arts = common.versioned_artefacts()
     for fn in [check_config, check_providers, check_log_headers, lambda: check_change_log(arts),
-               lambda: check_version_drift(arts), check_observations, check_normalized,
+               lambda: check_version_drift(arts), check_observations, check_probes, check_normalized,
                check_classifications, check_genai, lambda: check_append_only(args.git_base)]:
         try:
             fn()

@@ -11,10 +11,12 @@ It is built to be auditable: every number on the dashboard can be traced back
 to stored adverts, the exact text that was used as evidence, and the version
 of the rules, prompts and code that produced it.
 
-> Status at creation: **no source collects yet.** Every collector is
-> deliberately switched off until you have checked the official feed
-> documentation and terms of use. Until then the daily run records
-> `BLOCKED_NOT_CONFIGURED` and fetches nothing.
+> Status (November 2026): **NHS Jobs (England and Wales) collects every
+> live advert daily** through NHSBSA's documented Self-Serve search feed.
+> Scotland and Northern Ireland stay switched off until official feed
+> documentation is found. Copied advert content is kept in a **private
+> vault** repository; this public repository holds the code, the audit
+> logs and the results. See Part 6.
 
 ---
 
@@ -48,7 +50,7 @@ config/
   ai_lexicon.yaml          AI terms, with false-positive guards
   pipeline.yaml            de-duplication, change detection and GenAI settings
 data/
-  observations/            raw adverts, append-only, one new file per run
+  observations/            2026 pilot files only (now kept in the private vault)
   derived/                 processing outputs (most rebuilt each run)
     changes/               indicators, change signals, term emergence, re-advert diffs
     genai_runs/            GenAI outputs, append-only
@@ -316,7 +318,7 @@ confidence. It is capped at `max_items_per_run` adverts per day.
    identifier into `model:`, and bump `version:`.
 5. Add a `pipeline_config` row to `logs/change_log.csv`.
 
-Outputs appear in `data/derived/genai_runs/`. Records with status
+Outputs appear in the vault under `derived/genai_runs/`. Records with status
 `ACCEPTED` passed every deterministic check; all others are kept for audit
 but excluded from analysis.
 
@@ -325,19 +327,18 @@ but excluded from analysis.
 ## Part 5 – Reading the outputs
 
 * **Dashboard:** your GitHub Pages address.
-* `data/derived/changes/indicators.jsonl`: month × nation × role family,
+* `derived/changes/ (in the vault) indicators.jsonl`: month × nation × role family,
   share of adverts with AI content in the role text, with 95% intervals.
   Cells with fewer than 30 adverts are withheld.
-* `data/derived/changes/change_signals.jsonl`: months that differ from
+* `derived/changes/ (in the vault) change_signals.jsonl`: months that differ from
   their baseline once uncertainty is taken into account.
-* `data/derived/changes/role_change_candidates.jsonl`: successive adverts
+* `derived/changes/ (in the vault) role_change_candidates.jsonl`: successive adverts
   for the same job, with added and removed sentences.
-* `data/derived/changes/term_emergence.jsonl`: when each AI term first
+* `derived/changes/ (in the vault) term_emergence.jsonl`: when each AI term first
   appeared.
-* **Intermediate files** (normalised records, clusters, rule
-  classifications) are rebuilt every day from the stored observations and
-  are not kept in the repository. To inspect them: **Actions** tab, open a
-  run, scroll to **Artifacts**, download `derived-...`.
+* **Advert-level files** (normalised records, clusters, rule
+  classifications, change candidates and their evidence) are rebuilt in each
+  run from the vault and are not published, because they contain advert text.
 
 ---
 
@@ -373,8 +374,9 @@ is stored; the SHA-256 of the original is kept for integrity. Names of
 recruiting contacts may remain in advert text. Do not publish individual
 adverts' contact details, and review the terms of use of each source.
 
-**Storage.** Unchanged adverts are stored once; later sightings are small
-pointer records. Validation warns when stored observations exceed 500 MB.
+**Storage.** Unchanged adverts are stored once; later days add them to one
+compact "seen again" list per run. Validation warns when the vault's stored
+observations exceed 1,000 MB.
 At that point move observations to external storage before the repository
 becomes too large for GitHub.
 
@@ -394,6 +396,63 @@ providers can be added the same way.
 
 ---
 
+## Part 6 – The private vault
+
+**Why it exists.** The NHS Jobs terms allow downloading for personal,
+non-commercial use and forbid republishing. The observatory relies on the UK
+exception for text and data analysis for non-commercial research (Copyright,
+Designs and Patents Act 1988, section 29A): copies may be made for
+computational analysis, must acknowledge their source, and must not be passed
+to anyone else. So:
+
+* everything copied from adverts (feed records, search results, and later
+  full advert text) is stored only in the private repository
+  `nhs-observatory-vault`, which only you can see;
+* this public repository receives results only: counts, labels, confidence,
+  and links to each advert on NHS Jobs. No sentence quoted from an advert is
+  published unless `publish: evidence_snippets` in `config/pipeline.yaml` is
+  changed to `true`, which should only be done after taking advice;
+* the daily run happens here (public repositories have free automation
+  time). It opens the vault with the `VAULT_TOKEN` secret, adds the day's
+  data to it, and saves it back. Run logs here are public, so the scripts
+  print counts, never advert text;
+* if the vault is not attached, collectors stop safely and log
+  `BLOCKED_NO_VAULT`, so advert content can never be stored here by mistake.
+
+**The vault key (`VAULT_TOKEN`).** A fine-grained personal access token
+that can only read and write the contents of `nhs-observatory-vault`. Never
+paste it anywhere except the repository secret. If it is ever exposed,
+delete it (profile picture > Settings > Developer settings > Personal access
+tokens > Fine-grained tokens) and create a new one.
+
+### Renewing the vault key
+
+GitHub e-mails you about a week before the key expires. If it expires, the
+daily run stops before collecting, logs `BLOCKED_VAULT_UNAVAILABLE` in
+`logs/runs.csv` and shows a red cross. Nothing stored is lost, but adverts
+that open and close while collection is stopped cannot be recovered, so renew
+it in time:
+
+1. Click your **profile picture** > **Settings** > **Developer settings** >
+   **Personal access tokens** > **Fine-grained tokens**.
+2. Click **observatory-vault-writer** > **Regenerate token**, choose a new
+   expiry and confirm. Copy the new token.
+3. Go to **nhs-workforce-role-observatory** > **Settings** > **Secrets and
+   variables** > **Actions**. Click the **pencil** next to `VAULT_TOKEN`,
+   paste the new token and click **Update secret**.
+4. On the **Actions** tab click **Daily observatory run** > **Run workflow**.
+
+### NHS Jobs search cross-check
+
+NHS Jobs' documented `keyword` search looks through the job title and the
+full advert text, excluding the employer's "About us" section. Each day
+`probe_feed_search.py` asks it which adverts mention each AI term listed
+in `config/pipeline.yaml` and stores only the advert ids returned. These
+are **unverified search matches**: how the search treats multi-word terms is
+not documented, so they are shown separately on the dashboard and never
+counted in the headline AI measure. They will be checked against full
+advert text once that is collected.
+
 ## Troubleshooting
 
 * **Red cross on the Actions tab after editing a file.** Open the run and
@@ -402,5 +461,7 @@ providers can be added the same way.
 * **Daily run stopped happening.** GitHub pauses scheduled workflows in
   public repositories after 60 days with no activity. Run it manually once
   from the Actions tab.
+* **Red cross with `BLOCKED_VAULT_UNAVAILABLE` in `logs/runs.csv`.** The
+  vault key is missing or has expired: see "Renewing the vault key".
 * **Dashboard says no data.** Check that Pages uses `main` and `/docs`, and
   that at least one daily run has finished successfully.

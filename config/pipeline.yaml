@@ -1,7 +1,44 @@
 # =====================================================================
 # Pipeline settings
 # =====================================================================
-version: 0.1.0
+version: 0.2.0
+
+storage:
+  # Advert content may only be stored in the private vault repository.
+  # Collectors stop safely if the vault is not attached.
+  require_vault: true
+
+publish:
+  # false = the public dashboard shows labels, counts and links to adverts,
+  # but no sentences quoted from adverts. Only change this after taking
+  # advice that publishing short quotations is permitted.
+  evidence_snippets: false
+
+feed_search_probes:
+  # Uses NHS Jobs' documented `keyword` search, which looks through the job
+  # title and full advert text excluding 'About us' (API guide V1.07).
+  # Results are UNVERIFIED search matches: how multi-word terms are matched
+  # is not documented. They are never counted in the headline AI indicator.
+  enabled: true
+  source_id: nhsjobs
+  params:
+    limit: 100
+    sort: publicationDateAsc
+  max_pages_per_term: 20      # 2,000 adverts per term at most
+  terms:
+    - {id: ai_acronym, keyword: "AI"}
+    - {id: artificial_intelligence, keyword: "artificial intelligence"}
+    - {id: machine_learning, keyword: "machine learning"}
+    - {id: generative_ai, keyword: "generative AI"}
+    - {id: large_language_model, keyword: "large language model"}
+    - {id: chatgpt, keyword: "ChatGPT"}
+    - {id: copilot, keyword: "Copilot"}
+    - {id: ambient_voice, keyword: "ambient voice"}
+    - {id: ai_scribe, keyword: "AI scribe"}
+    - {id: predictive_analytics, keyword: "predictive analytics"}
+    - {id: algorithm, keyword: "algorithm"}
+    - {id: robotic_process_automation, keyword: "robotic process automation"}
+    - {id: automation, keyword: "automation"}
 
 dedup:
   # Two adverts from different sources are the same vacancy only if their

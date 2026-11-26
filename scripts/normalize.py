@@ -6,16 +6,17 @@ Deterministic only: no GenAI. Every value is either
   * inferred  - a judgement (nation, provider match) with method and confidence.
 Missing values are null. Nothing is guessed.
 
-Input : data/observations/<source>/<date>/*.jsonl
-Output: data/derived/normalized/<source>/<date>.jsonl
-        Rebuilt from all observations on every run (not committed to git).
-        A "sighting" (advert seen again, unchanged) reuses the stored
-        advert's content and records which observation it came from.
+Input : observations/<source>/<date>/*.jsonl (in the vault)
+Output: derived/normalized/<source>.jsonl
+        One record per stored advert version, with `observed_dates`: every
+        day the advert was seen with that content. Rebuilt from all
+        observations on every run (not committed to git).
 """
 from __future__ import annotations
 
 import datetime as dt
 import re
+import shutil
 
 import common
 
@@ -323,36 +324,50 @@ def main():
     started = common.utc_now_iso()
     sources = {s["source_id"]: s for s in common.load_yaml(common.CONFIG / "sources.yaml")["sources"]}
     pindex = build_provider_index(common.load_providers())
-    by_id, n_in, n_out, unresolved = {}, 0, 0, 0
+    out_dir = common.DERIVED / "normalized"
+    if out_dir.exists():
+        shutil.rmtree(out_dir)            # rebuildable: start clean every run
+    n_in = n_out = n_seen = unresolved = 0
     src_dirs = sorted(p for p in common.OBSERVATIONS.iterdir() if p.is_dir()) if common.OBSERVATIONS.exists() else []
     for src_dir in src_dirs:
         scope = sources.get(src_dir.name, {}).get("nation_scope") or []
-        for ddir in sorted(d for d in src_dir.iterdir() if d.is_dir()):
-            records = []
-            for f in sorted(ddir.glob("*.jsonl")):
-                for raw in common.read_jsonl(f):
-                    n_in += 1
-                    if raw.get("schema") == "raw_sighting/1":
-                        base = by_id.get(raw.get("same_content_as"))
-                        if base is None:
-                            unresolved += 1
-                            continue
-                        rec = dict(base)
-                        for k in ["observation_id", "run_id", "observed_date", "retrieved_at_utc",
-                                  "request_url", "record_url"]:
-                            rec[k] = raw.get(k)
-                        rec["content_from_observation_id"] = base["observation_id"]
-                    else:
-                        rec = normalise(raw, scope, pindex)
-                        rec["content_from_observation_id"] = None
+        by_id, dates = {}, {}
+        for f in sorted(src_dir.glob("*/*.jsonl")):          # date folders sort in time order
+            for raw in common.read_jsonl(f):
+                n_in += 1
+                schema = raw.get("schema")
+                if schema == "raw_observation/1":
+                    rec = normalise(raw, scope, pindex)
                     by_id[rec["observation_id"]] = rec
-                    records.append(rec)
-            out = common.DERIVED / "normalized" / src_dir.name / f"{ddir.name}.jsonl"
-            n_out += common.write_jsonl(out, records)
-    status = "OK" if n_in else "OK_EMPTY"
-    msg = f"{unresolved} sightings could not be resolved" if unresolved else "all observations normalised"
-    common.log_run(run_id, "normalize", started, status if not unresolved else "WARN", "", n_in, n_out, msg)
-    print(f"{status}: {n_in} observations -> {n_out} normalised ({msg})")
+                    dates[rec["observation_id"]] = {raw.get("observed_date")}
+                    continue
+                if schema == "raw_sighting/1":            # older one-line-per-advert format
+                    targets = [raw.get("same_content_as")]
+                elif schema == "raw_sighting_batch/1":
+                    targets = raw.get("items") or []
+                else:
+                    unresolved += 1
+                    continue
+                for target in targets:
+                    if target in dates:
+                        dates[target].add(raw.get("observed_date"))
+                        n_seen += 1
+                    else:
+                        unresolved += 1
+        records = []
+        for oid, rec in by_id.items():
+            ds = sorted(d for d in dates[oid] if d)
+            rec["observed_dates"] = ds
+            rec["observed_date"] = ds[0] if ds else rec.get("observed_date")
+            rec["last_observed_date"] = ds[-1] if ds else rec.get("observed_date")
+            records.append(rec)
+        records.sort(key=lambda r: (r["observed_date"] or "", r["observation_id"]))
+        n_out += common.write_jsonl(out_dir / f"{src_dir.name}.jsonl", records)
+    status = ("WARN" if unresolved else "OK") if n_in else "OK_EMPTY"
+    msg = (f"{n_out} advert versions, {n_seen} repeat sightings"
+           + (f"; {unresolved} sightings could not be matched to a stored advert" if unresolved else ""))
+    common.log_run(run_id, "normalize", started, status, "", n_in, n_out, msg)
+    print(f"{status}: {msg}")
 
 
 if __name__ == "__main__":

@@ -7,9 +7,13 @@ deliberately not supported: it is brittle and often outside site terms.
 Output (append-only, one new file per run):
   data/observations/<source_id>/<YYYY-MM-DD>/<run_id>.jsonl
 
-To keep the repository small, the full advert is stored only the first
-time it is seen, or when its content changes. On later days a small
-"sighting" record (schema raw_sighting/1) points to the stored copy.
+To keep storage small, the full advert is stored only the first time it is
+seen, or when its content changes. Adverts seen again unchanged are listed
+in one compact record per run (schema raw_sighting_batch/1) that points to
+the stored copies.
+
+If the site fails part-way through paging, the pages already read are kept
+and the run is logged as PARTIAL (the next day's run fills the gap).
 
 Personal contact details (e-mails, phone numbers) are redacted before
 anything is written. The SHA-256 of the unredacted record is kept so the
@@ -96,7 +100,7 @@ def robots_allows(url: str, user_agent: str) -> bool:
     return _robots_for(f"{parts.scheme}://{parts.netloc}/robots.txt").can_fetch(user_agent, url)
 
 
-def fetch(url: str, defaults: dict) -> tuple[int, bytes]:
+def fetch_once(url: str, defaults: dict) -> tuple[int, bytes]:
     req = urllib.request.Request(url, headers={"User-Agent": defaults["user_agent"]})
     limit = int(defaults.get("max_response_bytes", 20_000_000))
     with urllib.request.urlopen(req, timeout=int(defaults.get("timeout_seconds", 30))) as resp:
@@ -104,6 +108,25 @@ def fetch(url: str, defaults: dict) -> tuple[int, bytes]:
         if len(body) > limit:
             raise Blocked("response larger than max_response_bytes")
         return resp.status, body
+
+
+RETRY_WAITS = (10, 30)   # seconds to wait before the 2nd and 3rd attempts
+
+
+def fetch(url: str, defaults: dict) -> tuple[int, bytes]:
+    """Fetch with up to two retries for temporary failures (timeouts, 429, 5xx)."""
+    for attempt in range(len(RETRY_WAITS) + 1):
+        try:
+            return fetch_once(url, defaults)
+        except urllib.error.HTTPError as exc:
+            if exc.code != 429 and exc.code < 500:
+                raise                      # 4xx errors are not temporary
+            last = exc
+        except (urllib.error.URLError, TimeoutError, ConnectionError) as exc:
+            last = exc
+        if attempt < len(RETRY_WAITS):
+            time.sleep(RETRY_WAITS[attempt])
+    raise last
 
 
 def build_url(endpoint: str, params: dict) -> str:
@@ -205,6 +228,12 @@ def collect(source_id: str, dry_run: bool = False, strict: bool = False) -> int:
             print(msg)
             common.log_run(run_id, script, started, "BLOCKED_NOT_CONFIGURED", source_id, 0, 0, msg)
             return 2 if strict else 0
+        storage = common.storage_problem()
+        if storage:
+            msg = "NOT COLLECTED (safe stop): " + storage
+            print(msg)
+            common.log_run(run_id, script, started, "BLOCKED_NO_VAULT", source_id, 0, 0, msg)
+            return 2 if strict else 0
         if dry_run:
             print("Preflight passed. Dry run: nothing fetched.")
             common.log_run(run_id, script, started, "DRY_RUN_OK", source_id, 0, 0, "preflight passed")
@@ -221,6 +250,7 @@ def collect(source_id: str, dry_run: bool = False, strict: bool = False) -> int:
         delay = float(defaults.get("min_seconds_between_requests", 3))
         retrieved, seen_keys = [], set()
         fmap = src.get("field_map") or {}
+        partial_error, pages_read, hit_cap = None, 0, False
         for i, page in enumerate(pages):
             params = dict(src.get("params") or {})
             if page is not None:
@@ -230,8 +260,16 @@ def collect(source_id: str, dry_run: bool = False, strict: bool = False) -> int:
                 raise Blocked(f"robots.txt disallows {url}")
             if i:
                 time.sleep(delay)
-            status, body = fetch(url, defaults)
-            records = parse_records(body, src)
+            try:
+                status, body = fetch(url, defaults)
+                records = parse_records(body, src)
+            except (urllib.error.URLError, ET.ParseError, json.JSONDecodeError, OSError) as exc:
+                if not retrieved:
+                    raise
+                partial_error = f"stopped at page {page}: {exc!r}"
+                print(f"page {page}: FAILED, keeping {len(retrieved)} adverts already read")
+                break
+            pages_read += 1
             new = 0
             for rec in records:
                 m = map_record(rec, fmap)
@@ -244,10 +282,12 @@ def collect(source_id: str, dry_run: bool = False, strict: bool = False) -> int:
             print(f"page {page}: HTTP {status}, {len(records)} records, {new} new")
             if not records or new == 0:
                 break  # end of results, or the page parameter is being ignored
+        else:
+            hit_cap = len(pages) > 1   # every allowed page was full: there may be more
 
         day = common.today_utc()
         known = content_index(source_id)
-        out, n_full = [], 0
+        out, n_full, seen_again = [], 0, []
         for request_url, status, rec in retrieved:
             original_sha = common.sha256_json(rec)
             redacted, n_red = common.redact_structure(rec)
@@ -256,13 +296,7 @@ def collect(source_id: str, dry_run: bool = False, strict: bool = False) -> int:
             obs_id = common.sha256_text(f"{source_id}|{key}|{run_id}")[:24]
             earlier = known.get((key, original_sha))
             if earlier:
-                out.append({
-                    "schema": "raw_sighting/1", "observation_id": obs_id, "run_id": run_id,
-                    "source_id": source_id, "retrieved_at_utc": started, "observed_date": day,
-                    "request_url": request_url, "http_status": status,
-                    "record_url": mapped.get("url"), "source_record_id": mapped.get("source_record_id"),
-                    "content_sha256_original": original_sha, "same_content_as": earlier,
-                })
+                seen_again.append(earlier)
                 continue
             known[(key, original_sha)] = obs_id
             n_full += 1
@@ -284,13 +318,28 @@ def collect(source_id: str, dry_run: bool = False, strict: bool = False) -> int:
                 "raw": redacted,
                 "versions": common.version_stamp(),
             })
+        if seen_again:
+            out.append({
+                "schema": "raw_sighting_batch/1",
+                "observation_id": common.sha256_text(f"{source_id}|batch|{run_id}")[:24],
+                "run_id": run_id, "source_id": source_id, "retrieved_at_utc": started,
+                "observed_date": day, "request_url": src["endpoint"],
+                "n_items": len(seen_again),
+                "items": seen_again,   # observation_ids of the stored, unchanged adverts
+            })
         path = common.OBSERVATIONS / source_id / day / f"{run_id}.jsonl"
-        n = common.write_jsonl(path, out, exclusive=True) if out else 0
-        status_text = "OK" if n else "OK_EMPTY"
-        common.log_run(run_id, script, started, status_text, source_id, len(retrieved), n,
-                       (f"wrote observations/{source_id}/{day}/{path.name}: {n_full} new or changed, "
-                        f"{n - n_full} seen again") if n else "no records returned")
-        print(f"{status_text}: {n} records")
+        if out:
+            common.write_jsonl(path, out, exclusive=True)
+        n = n_full + len(seen_again)
+        status_text = "PARTIAL" if partial_error else ("OK" if n else "OK_EMPTY")
+        msg = (f"{pages_read} pages; {n_full} new or changed adverts, {len(seen_again)} seen again"
+               if n else "no records returned")
+        if hit_cap:
+            msg += "; WARNING: reached pagination.max_pages, some adverts may be missing"
+        if partial_error:
+            msg += "; " + partial_error
+        common.log_run(run_id, script, started, status_text, source_id, len(retrieved), n, msg)
+        print(f"{status_text}: {msg}")
         return 0
     except Blocked as exc:
         common.log_run(run_id, script, started, "BLOCKED", source_id, 0, 0, str(exc))

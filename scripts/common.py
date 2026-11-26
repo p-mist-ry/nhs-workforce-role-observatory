@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import csv
 import datetime as dt
+import functools
 import hashlib
 import json
 import os
@@ -22,14 +23,23 @@ import subprocess
 import sys
 from pathlib import Path
 
-PIPELINE_VERSION = "0.1.1"
+PIPELINE_VERSION = "0.2.0"
 
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG = ROOT / "config"
 DATA = ROOT / "data"
-OBSERVATIONS = DATA / "observations"
-DERIVED = DATA / "derived"
-DASHBOARD = DATA / "dashboard"
+
+# Advert content (copied adverts, search results and everything derived from
+# them) is kept in the PRIVATE vault repository, never in this public one.
+# The daily workflow checks the vault out and sets OBSERVATORY_VAULT to its
+# folder. Without it (e.g. in tests) the public data/ folder is used.
+VAULT = Path(os.environ["OBSERVATORY_VAULT"]).resolve() if os.environ.get("OBSERVATORY_VAULT") else None
+STORE = VAULT if VAULT else DATA
+OBSERVATIONS = STORE / "observations"
+PROBES = STORE / "probes"
+DERIVED = STORE / "derived"
+PUBLIC_OBSERVATIONS = DATA / "observations"   # 2026 pilot files only; no longer written
+DASHBOARD = DATA / "dashboard"                # public results
 LOGS = ROOT / "logs"
 PROMPTS = ROOT / "prompts"
 DOCS_DATA = ROOT / "docs" / "data"
@@ -65,6 +75,7 @@ def make_run_id(script: str) -> str:
     return f"{stamp}_{gh}_{script}"
 
 
+@functools.lru_cache(maxsize=None)
 def git_sha() -> str:
     sha = os.environ.get("GITHUB_SHA")
     if sha:
@@ -102,6 +113,17 @@ def load_yaml(path: Path):
         return yaml.safe_load(fh)
 
 
+def storage_problem():
+    """Return a reason not to store advert content, or None if storage is safe."""
+    cfg = (load_yaml(CONFIG / "pipeline.yaml") or {}).get("storage") or {}
+    if cfg.get("require_vault") and VAULT is None:
+        return ("the private vault is not attached (OBSERVATORY_VAULT is not set), so advert "
+                "content will not be stored in the public repository")
+    if VAULT is not None and not VAULT.is_dir():
+        return f"the vault folder {VAULT} does not exist"
+    return None
+
+
 def load_providers() -> list[dict]:
     path = CONFIG / "providers.csv"
     with open(path, encoding="utf-8", newline="") as fh:
@@ -125,7 +147,19 @@ def prompt_metadata(path: Path) -> dict:
 
 
 def versioned_artefacts() -> dict:
-    """Return {artefact_name: (version, sha256_12)} for everything rule 10 covers."""
+    """Return {artefact_name: (version, sha256_12)} for everything rule 10 covers.
+
+    Read once per run (files do not change while a script runs) and copied,
+    so stamping thousands of records stays fast."""
+    return dict(_versioned_artefacts())
+
+
+@functools.lru_cache(maxsize=None)
+def _versioned_artefacts() -> tuple:
+    return tuple(_read_versioned_artefacts().items())
+
+
+def _read_versioned_artefacts() -> dict:
     out = {}
     yaml_files = {"taxonomy": "taxonomy.yaml", "ai_lexicon": "ai_lexicon.yaml",
                   "sources": "sources.yaml", "pipeline_config": "pipeline.yaml"}
