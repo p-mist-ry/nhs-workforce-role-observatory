@@ -2,7 +2,7 @@
   "ai": {
     "by_nation_all_time": {
       "England": {
-        "n": 11998,
+        "n": 12837,
         "n_ai": 6,
         "share": 0.0005,
         "suppressed_small_n": false
@@ -14,19 +14,19 @@
         "suppressed_small_n": true
       },
       "Scotland": {
-        "n": 56,
+        "n": 60,
         "n_ai": 0,
         "share": 0.0,
         "suppressed_small_n": false
       },
       "UNKNOWN": {
-        "n": 294,
+        "n": 310,
         "n_ai": 1,
-        "share": 0.0034,
+        "share": 0.0032,
         "suppressed_small_n": false
       },
       "Wales": {
-        "n": 400,
+        "n": 435,
         "n_ai": 0,
         "share": 0.0,
         "suppressed_small_n": false
@@ -35,9 +35,9 @@
     "change_signals": [],
     "evidence_snippets_published": false,
     "feed_search": {
-      "any_term": 5708,
-      "date": "2026-11-26",
-      "live_adverts": 12738,
+      "any_term": 5590,
+      "date": "2026-11-27",
+      "live_adverts": 12600,
       "source_id": "nhsjobs",
       "terms": [
         {
@@ -65,180 +65,76 @@
           "probe_id": "robotic_process_automation"
         },
         {
-          "complete": false,
-          "error": null,
-          "keyword": "machine learning",
-          "n_matches": 2000,
-          "n_matches_live": 2000,
-          "probe_id": "machine_learning"
-        },
-        {
-          "complete": false,
-          "error": null,
-          "keyword": "large language model",
-          "n_matches": 2000,
-          "n_matches_live": 2000,
-          "probe_id": "large_language_model"
-        },
-        {
-          "complete": false,
-          "error": null,
-          "keyword": "robotic process automation",
-          "n_matches": 2000,
-          "n_matches_live": 2000,
-          "probe_id": "robotic_process_automation"
-        },
-        {
           "complete": true,
           "error": null,
           "keyword": "generative AI",
-          "n_matches": 893,
-          "n_matches_live": 893,
+          "n_matches": 881,
+          "n_matches_live": 880,
           "probe_id": "generative_ai"
         },
         {
           "complete": true,
           "error": null,
           "keyword": "predictive analytics",
-          "n_matches": 858,
-          "n_matches_live": 857,
-          "probe_id": "predictive_analytics"
-        },
-        {
-          "complete": true,
-          "error": null,
-          "keyword": "generative AI",
-          "n_matches": 838,
-          "n_matches_live": 838,
-          "probe_id": "generative_ai"
-        },
-        {
-          "complete": true,
-          "error": null,
-          "keyword": "predictive analytics",
-          "n_matches": 817,
-          "n_matches_live": 817,
+          "n_matches": 856,
+          "n_matches_live": 855,
           "probe_id": "predictive_analytics"
         },
         {
           "complete": true,
           "error": null,
           "keyword": "AI scribe",
-          "n_matches": 477,
-          "n_matches_live": 476,
+          "n_matches": 465,
+          "n_matches_live": 464,
           "probe_id": "ai_scribe"
         },
         {
           "complete": true,
           "error": null,
           "keyword": "AI",
-          "n_matches": 475,
-          "n_matches_live": 475,
-          "probe_id": "ai_acronym"
-        },
-        {
-          "complete": true,
-          "error": null,
-          "keyword": "AI scribe",
-          "n_matches": 438,
-          "n_matches_live": 438,
-          "probe_id": "ai_scribe"
-        },
-        {
-          "complete": true,
-          "error": null,
-          "keyword": "AI",
-          "n_matches": 437,
-          "n_matches_live": 437,
+          "n_matches": 462,
+          "n_matches_live": 462,
           "probe_id": "ai_acronym"
         },
         {
           "complete": true,
           "error": null,
           "keyword": "artificial intelligence",
-          "n_matches": 414,
-          "n_matches_live": 414,
-          "probe_id": "artificial_intelligence"
-        },
-        {
-          "complete": true,
-          "error": null,
-          "keyword": "artificial intelligence",
-          "n_matches": 390,
-          "n_matches_live": 390,
+          "n_matches": 427,
+          "n_matches_live": 427,
           "probe_id": "artificial_intelligence"
         },
         {
           "complete": true,
           "error": null,
           "keyword": "ambient voice",
-          "n_matches": 362,
-          "n_matches_live": 362,
-          "probe_id": "ambient_voice"
-        },
-        {
-          "complete": true,
-          "error": null,
-          "keyword": "ambient voice",
-          "n_matches": 347,
-          "n_matches_live": 347,
+          "n_matches": 368,
+          "n_matches_live": 368,
           "probe_id": "ambient_voice"
         },
         {
           "complete": true,
           "error": null,
           "keyword": "automation",
-          "n_matches": 155,
-          "n_matches_live": 155,
-          "probe_id": "automation"
-        },
-        {
-          "complete": true,
-          "error": null,
-          "keyword": "automation",
-          "n_matches": 148,
-          "n_matches_live": 148,
+          "n_matches": 160,
+          "n_matches_live": 160,
           "probe_id": "automation"
         },
         {
           "complete": true,
           "error": null,
           "keyword": "algorithm",
-          "n_matches": 10,
-          "n_matches_live": 10,
-          "probe_id": "algorithm"
-        },
-        {
-          "complete": true,
-          "error": null,
-          "keyword": "algorithm",
-          "n_matches": 10,
-          "n_matches_live": 10,
+          "n_matches": 11,
+          "n_matches_live": 11,
           "probe_id": "algorithm"
         },
         {
           "complete": true,
           "error": null,
           "keyword": "Copilot",
-          "n_matches": 4,
-          "n_matches_live": 4,
+          "n_matches": 3,
+          "n_matches_live": 3,
           "probe_id": "copilot"
-        },
-        {
-          "complete": true,
-          "error": null,
-          "keyword": "Copilot",
-          "n_matches": 4,
-          "n_matches_live": 4,
-          "probe_id": "copilot"
-        },
-        {
-          "complete": true,
-          "error": null,
-          "keyword": "ChatGPT",
-          "n_matches": 0,
-          "n_matches_live": 0,
-          "probe_id": "chatgpt"
         },
         {
           "complete": true,
@@ -256,19 +152,19 @@
       "ALL": [
         {
           "ci95_high": 0.0011,
-          "ci95_low": 0.0003,
+          "ci95_low": 0.0002,
           "month": "2026-11",
-          "n_vacancy_clusters": 12749,
+          "n_vacancy_clusters": 13643,
           "share_ai_role_content": 0.0005,
           "suppressed_small_n": false
         }
       ],
       "England": [
         {
-          "ci95_high": 0.0011,
+          "ci95_high": 0.001,
           "ci95_low": 0.0002,
           "month": "2026-11",
-          "n_vacancy_clusters": 11998,
+          "n_vacancy_clusters": 12837,
           "share_ai_role_content": 0.0005,
           "suppressed_small_n": false
         }
@@ -285,30 +181,30 @@
       ],
       "Scotland": [
         {
-          "ci95_high": 0.0642,
+          "ci95_high": 0.0602,
           "ci95_low": 0.0,
           "month": "2026-11",
-          "n_vacancy_clusters": 56,
+          "n_vacancy_clusters": 60,
           "share_ai_role_content": 0.0,
           "suppressed_small_n": false
         }
       ],
       "UNKNOWN": [
         {
-          "ci95_high": 0.019,
+          "ci95_high": 0.018,
           "ci95_low": 0.0006,
           "month": "2026-11",
-          "n_vacancy_clusters": 294,
-          "share_ai_role_content": 0.0034,
+          "n_vacancy_clusters": 310,
+          "share_ai_role_content": 0.0032,
           "suppressed_small_n": false
         }
       ],
       "Wales": [
         {
-          "ci95_high": 0.0095,
+          "ci95_high": 0.0088,
           "ci95_low": 0.0,
           "month": "2026-11",
-          "n_vacancy_clusters": 400,
+          "n_vacancy_clusters": 435,
           "share_ai_role_content": 0.0,
           "suppressed_small_n": false
         }
@@ -317,9 +213,38 @@
     "relationship_candidates_rules": {
       "AI_BUILD": 4,
       "AI_DATA_FOUNDATION": 4,
-      "AI_NONE_OBSERVED": 12738
+      "AI_NONE_OBSERVED": 13632
     },
-    "role_change_examples": [],
+    "role_change_examples": [
+      {
+        "ai_role_content_a": false,
+        "ai_role_content_b": false,
+        "cluster_a": "vc_f47b27fb4d7e364c",
+        "cluster_b": "vc_81b0316a313a7e25",
+        "content_changed": true,
+        "employer": "Synnovis Analytics",
+        "first_seen_a": "2026-11-26",
+        "first_seen_b": "2026-11-27",
+        "link_basis": "same employer and normalised title (linking only, not classification)",
+        "n_ai_sentences_added": 0,
+        "n_ai_sentences_removed": 0,
+        "n_sentences_added": 1,
+        "n_sentences_removed": 2,
+        "nation": "England",
+        "needs_evidence_review": true,
+        "pair_id": "rp_91f7bcefeed21fec",
+        "schema": "role_change_candidate/1",
+        "sentence_overlap": 0.0,
+        "task_categories_added": [
+          "administration_scheduling"
+        ],
+        "task_categories_removed": [],
+        "title_a": "Clinical Scientist",
+        "title_b": "Clinical Scientist",
+        "url_a": "https://beta.jobs.nhs.uk/candidate/jobadvert/U9206-26-0049",
+        "url_b": "https://beta.jobs.nhs.uk/candidate/jobadvert/U9206-26-00002"
+      }
+    ],
     "term_emergence": [
       {
         "category": "generic_ai",
@@ -438,41 +363,41 @@
     "by_status": {},
     "records": 0
   },
-  "generated_at_utc": "2026-11-26T15:38:51Z",
+  "generated_at_utc": "2026-11-27T15:26:42Z",
   "quality": {
     "last_qa_checks": 12,
     "last_qa_failures": [],
-    "last_qa_run_id": "20261126T153849Z_45848790877_validate",
-    "share_nation_unknown": 0.0231,
-    "share_role_family_unknown_or_ambiguous": 0.787,
-    "title_only_refusals": 1664
+    "last_qa_run_id": "20261127T152639Z_46022731953_validate",
+    "share_nation_unknown": 0.0227,
+    "share_role_family_unknown_or_ambiguous": 0.7852,
+    "title_only_refusals": 1790
   },
   "role_families": {
     "AMBIGUOUS": 57,
-    "UNKNOWN": 9976,
-    "administration_clerical": 294,
-    "allied_health": 890,
+    "UNKNOWN": 10656,
+    "administration_clerical": 317,
+    "allied_health": 950,
     "ambulance_urgent_access": 7,
-    "care_navigation_social_prescribing": 84,
-    "clinical_support": 247,
+    "care_navigation_social_prescribing": 90,
+    "clinical_support": 280,
     "digital_data_technology": 15,
-    "estates_facilities": 280,
-    "healthcare_science": 31,
-    "management_corporate": 128,
-    "medical_associate_professions": 3,
-    "medical_dental": 27,
-    "nursing_midwifery": 365,
-    "pharmacy": 121,
-    "psychological_professions": 140,
-    "research_education": 37,
-    "social_work_social_care": 47
+    "estates_facilities": 306,
+    "healthcare_science": 32,
+    "management_corporate": 136,
+    "medical_associate_professions": 4,
+    "medical_dental": 29,
+    "nursing_midwifery": 393,
+    "pharmacy": 130,
+    "psychological_professions": 149,
+    "research_education": 43,
+    "social_work_social_care": 49
   },
   "sources": [
     {
       "enabled": true,
       "endpoint_configured": true,
       "last_message": "13 terms probed; stopped at max_pages_per_term: machine_learning, large_language_model, robotic_process_automation",
-      "last_run_utc": "2026-11-26T15:38:34Z",
+      "last_run_utc": "2026-11-27T15:26:21Z",
       "last_status": "OK",
       "name": "NHS Jobs (England and Wales)",
       "nation_scope": [
@@ -486,7 +411,7 @@
       "enabled": false,
       "endpoint_configured": false,
       "last_message": "NOT COLLECTED (safe stop): enabled is not true; endpoint is not filled in; documentation_url is not filled in; terms_url is not filled in; terms_reviewed_on is not filled in; format is not filled in; field_map.title is not mapped; field_map.url is not mapped",
-      "last_run_utc": "2026-11-26T15:32:03Z",
+      "last_run_utc": "2026-11-27T15:19:50Z",
       "last_status": "BLOCKED_NOT_CONFIGURED",
       "name": "NHS Scotland National Recruitment Portal",
       "nation_scope": [
@@ -499,7 +424,7 @@
       "enabled": false,
       "endpoint_configured": false,
       "last_message": "NOT COLLECTED (safe stop): enabled is not true; endpoint is not filled in; documentation_url is not filled in; terms_url is not filled in; terms_reviewed_on is not filled in; format is not filled in; field_map.title is not mapped; field_map.url is not mapped",
-      "last_run_utc": "2026-11-26T15:32:03Z",
+      "last_run_utc": "2026-11-27T15:19:50Z",
       "last_status": "BLOCKED_NOT_CONFIGURED",
       "name": "HSC Recruit / jobs.hscni.net (Northern Ireland)",
       "nation_scope": [
@@ -618,20 +543,20 @@
   ],
   "totals": {
     "clusters_by_nation": {
-      "England": 11998,
+      "England": 12837,
       "Northern Ireland": 1,
-      "Scotland": 56,
-      "UNKNOWN": 294,
-      "Wales": 400
+      "Scotland": 60,
+      "UNKNOWN": 310,
+      "Wales": 435
     },
     "cross_posted_clusters": 0,
-    "observations": 12989,
-    "vacancy_clusters": 12749
+    "observations": 25589,
+    "vacancy_clusters": 13643
   },
   "versions": {
     "ai_lexicon": "0.1.0",
     "code": "0.2.0",
-    "git_sha": "ea9e721e5a9e47332cbf71b340a0607e9bfd21c8",
+    "git_sha": "1361677946b5e8ffb8e1572b2604613acd783f53",
     "pipeline_config": "0.2.0",
     "prompt_change_detection": "0.1.0",
     "prompt_classification": "0.1.0",

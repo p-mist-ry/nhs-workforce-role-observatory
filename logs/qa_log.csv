@@ -199,3 +199,15 @@ qa_id,run_id,checked_at_utc,check_name,status,severity,file,details
 20261126T153849Z_45848790877_validate-010,20261126T153849Z_45848790877_validate,2026-11-26T15:38:49Z,classifications,PASS,info,,12749 rule classifications have valid evidence
 20261126T153849Z_45848790877_validate-011,20261126T153849Z_45848790877_validate,2026-11-26T15:38:49Z,genai,PASS,info,,0 GenAI records checked
 20261126T153849Z_45848790877_validate-012,20261126T153849Z_45848790877_validate,2026-11-26T15:38:49Z,append_only,PASS,info,,append-only areas unchanged since HEAD (and vault unchanged since its last commit)
+20261127T152639Z_46022731953_validate-001,20261127T152639Z_46022731953_validate,2026-11-27T15:26:39Z,config,PASS,info,,all config files parse; enabled sources documented
+20261127T152639Z_46022731953_validate-002,20261127T152639Z_46022731953_validate,2026-11-27T15:26:39Z,providers,PASS,info,,41 providers valid
+20261127T152639Z_46022731953_validate-003,20261127T152639Z_46022731953_validate,2026-11-27T15:26:39Z,log_headers,PASS,info,,log headers correct
+20261127T152639Z_46022731953_validate-004,20261127T152639Z_46022731953_validate,2026-11-27T15:26:39Z,change_log,PASS,info,,every current artefact version is logged
+20261127T152639Z_46022731953_validate-005,20261127T152639Z_46022731953_validate,2026-11-27T15:26:39Z,version_drift,PASS,info,,no unversioned changes detected
+20261127T152639Z_46022731953_validate-006,20261127T152639Z_46022731953_validate,2026-11-27T15:26:39Z,observations,PASS,info,,13989 raw observations valid
+20261127T152639Z_46022731953_validate-007,20261127T152639Z_46022731953_validate,2026-11-27T15:26:39Z,storage,PASS,info,,observations use 30.8 MB
+20261127T152639Z_46022731953_validate-008,20261127T152639Z_46022731953_validate,2026-11-27T15:26:39Z,probes,PASS,info,,39 search probe records valid
+20261127T152639Z_46022731953_validate-009,20261127T152639Z_46022731953_validate,2026-11-27T15:26:39Z,normalized,PASS,info,,13952 normalised records valid
+20261127T152639Z_46022731953_validate-010,20261127T152639Z_46022731953_validate,2026-11-27T15:26:39Z,classifications,PASS,info,,13643 rule classifications have valid evidence
+20261127T152639Z_46022731953_validate-011,20261127T152639Z_46022731953_validate,2026-11-27T15:26:39Z,genai,PASS,info,,0 GenAI records checked
+20261127T152639Z_46022731953_validate-012,20261127T152639Z_46022731953_validate,2026-11-27T15:26:39Z,append_only,PASS,info,,append-only areas unchanged since HEAD (and vault unchanged since its last commit)
